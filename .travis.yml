@@ -6,7 +6,6 @@ before_install:
     - go get -u golang.org/x/tools/cmd/cover
     - go get -u github.com/mattn/goveralls
     - go get -u github.com/alecthomas/gometalinter
-    - gometalinter --install --update
 
 script:
     - go build
@@ -17,6 +16,6 @@ script:
     - $GOPATH/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 
 env:
-  global:
-    secure: qkzXJs9/ZEauQ/vFy1KWQ0WqGJ4HzMT1E6BaMjJFWKzF7lVbdJTkJYqDIEOoGbB350/6XeuTK5qkrxXu3+LpBNSpwDG+UQZdEumMdrThHNkzjKrYyKn8vIGNqnGiX3znIoSwNVI5dN6HWOC0+UmhWaPU6LiR0Hz1crBpaUe7f//Amj7ICqR41ubonmrfV1WKC89QzOJUGl/258wb/eF3nW3YFduVKtqcTXx3K6Wyp4bX3Cwam85IsUuY+DmJYxIwAdpCRPAuitaAq/7LSGgSxi9ZDumsGKwKlUa0hCiuqQ6lSTMLrEWf9FBij2W18HJynLNsMbNuFZ5sBxzPHsvBOYuwhR47okmRh2x7JNWjqlEQZ+PjApFwMpy3UfeDc83SYobmP46DoKd3Ir8ioMO/uNYLk8Fv9zVEcYkz5SKu6kBWA63IvAeE7THLTLrk3Dz/vKXCSWskFTc3waHAl2whS0+MXBsl807ttXndC/RHzSqv7hmpO0jxCmtbhxQXPaGFbV3MOR980KXU9riObAWzRKk3xTspBDXIgM+JgZTXCevyjqMY3GxsHzknKky+URI4bWIh0avIolij5M9XlG9lcr7m9yxVEkN4cpXTIxm2ICR5c7ajj5bhYf81K9i4+lZ4A4D7hoKP6+kXotq8kAqMvpbaYIgsASR3R8pZfBLXPaU=
+    global:
+        secure: "VlFAY/DpNsbUx6gLQ9Z1N4I/57+UMw2ZGzc2/pFtBJSw99QAQBOht6DfpcTIYuvM9puJr78nfkNkRhVjhKvwy+DqyT6FConAe70Fymt8vMUU1nGaL+1K+oJMU/NV6qj2vJGIEJayUUYsOroSzVU1P3HJkXYkJLn9/aR8MCcNgTALd31jIW1US4wbbfeIvabSnOllYmE9+9dbJRY1EpJ9t6HxnLy4R8gQURJYK5hDcilD4cJ7ZI5TPeSGc4D2J9JBQimM41NDN6/PyeJrux2RTpt/OaN8RcdZZmQkRWKrxBqB3V6rn7jkgpf3UIW7uyIOsxa64K/KGGf1SBsG0KPieiBq2GZAmtCcBwslGWQmdhE+oESy/wktTbCUfZE0CAn5HNFi1Wothz749Zwut0YLSG+4YvRFJMzXd6m2XrZI304LLDcWvaSo401m5+cdLj8Vw7x9I6q7iIZwbjlYaHKc9A7xbY+sFtGpFMUOmwxmIwXIh90Pn8JREhz77C+AoT622EdexaOv3nxF7S17CIldxx/uyyfjDGpRY/Xz+taDDW/OCa+n8lpgByCWdqZ4k+FAplDDuez9e98lGWvmeTLsDVgcl5oM85ECaDEoP5CTkLenZpEHgk3fDqCobVNiHm1HEEb2bXAXP8I1JMS/+h9BSsFBnnESkq4RuL4xx6GAEeI="
 
