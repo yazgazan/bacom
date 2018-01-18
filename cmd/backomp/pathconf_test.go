@@ -19,7 +19,7 @@ func TestGetPathConf(t *testing.T) {
 		{
 			path: "/foo",
 			conf: []pathConf{
-				pathConf{
+				{
 					Path: "**",
 					JSON: jsonConf{
 						Ignore:     []string{".error"},
@@ -43,7 +43,7 @@ func TestGetPathConf(t *testing.T) {
 		{
 			path: "/foo",
 			conf: []pathConf{
-				pathConf{
+				{
 					Path: "**",
 					JSON: jsonConf{
 						Ignore:     []string{".error"},
@@ -53,7 +53,7 @@ func TestGetPathConf(t *testing.T) {
 						Ignore: []string{"Content-Type"},
 					},
 				},
-				pathConf{
+				{
 					Path: "/foo",
 					JSON: jsonConf{
 						Ignore:     []string{".reason"},
@@ -63,7 +63,7 @@ func TestGetPathConf(t *testing.T) {
 						Ignore: []string{"Accept-Language"},
 					},
 				},
-				pathConf{
+				{
 					Path: "/bar",
 					JSON: jsonConf{
 						Ignore:     []string{".result"},

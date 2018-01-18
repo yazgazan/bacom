@@ -16,7 +16,7 @@ const (
 var (
 	defaultConstraints = newConstraintMustParse("*")
 	defaultPathsConfig = []pathConf{
-		pathConf{
+		{
 			Path: "**",
 			Headers: headersConf{
 				Ignore: []string{
