@@ -12,7 +12,8 @@ script:
     - go build
     - gometalinter --vendored-linters -e '_test.go' ./...
     - go test -v ./...
-    - go test -v -covermode=count -coverprofile=coverage.out ./diff
+    - go test -v -covermode=count -coverprofile=coverage.out .
+    - go test -v -covermode=count -coverprofile=coverage.out ./har
     - $GOPATH/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 
 env:
