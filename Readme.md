@@ -9,6 +9,6 @@ BaComp-tester
 - [ ] Add functional tests (mock server with baseline + pass/fail versions)
 - [ ] Add example `config.json` to the readme
 - [ ] Settle on a cool name
-- [ ] Good defaults for the headers config
 - [ ] More tools
 - [ ] Integrate tools to main command
+- [ ] Support trailers

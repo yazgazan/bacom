@@ -20,7 +20,13 @@ var (
 			Path: "**",
 			Headers: headersConf{
 				Ignore: []string{
-					"Set-Cookie",
+					"Connection",
+				},
+				IgnoreContent: []string{
+					"Age", "Content-MD5", "Content-Range", "Date",
+					"Expires", "Last-Modified", "Public-Key-Pins",
+					"Server", "Set-Cookie", "Etag", "Retry-After",
+					"X-*",
 				},
 			},
 		},
