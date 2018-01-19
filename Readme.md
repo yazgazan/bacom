@@ -1,5 +1,9 @@
-BaComp-tester
-=============
+# BaComp-tester
+
+[![Go Report Card](https://goreportcard.com/badge/github.com/yazgazan/backomp)](https://goreportcard.com/report/github.com/yazgazan/backomp)
+[![GoDoc](https://godoc.org/github.com/yazgazan/backomp?status.svg)](https://godoc.org/github.com/yazgazan/backomp)
+[![Build Status](https://travis-ci.org/yazgazan/backomp.svg?branch=master)](https://travis-ci.org/yazgazan/backomp)
+[![Coverage Status](https://coveralls.io/repos/github/yazgazan/backomp/badge.svg?branch=master)](https://coveralls.io/github/yazgazan/backomp?branch=master)
 
 ## TODO
 
