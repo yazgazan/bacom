@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -15,14 +14,15 @@ import (
 	"github.com/yazgazan/backomp/har"
 )
 
-func main() {
-	var outputDestination string
+func importCmd(args []string) {
+	c, err := parseImportFlags(args)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error:", err)
+		os.Exit(1)
+	}
 
-	flag.StringVar(&outputDestination, "out-dir", ".", "output directory")
-	flag.Parse()
-
-	for _, fname := range flag.Args() {
-		err := importFromFile(fname, outputDestination)
+	for _, fname := range c.Files {
+		err := importFromFile(fname, c.Dir)
 		if err != nil {
 			log.Fatal(err)
 		}

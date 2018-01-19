@@ -14,5 +14,4 @@
 - [ ] Add example `config.json` to the readme
 - [ ] Settle on a cool name
 - [ ] More tools
-- [ ] Integrate tools to main command
-- [ ] Support trailers
+- [ ] Support http trailers

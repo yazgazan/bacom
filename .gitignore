@@ -20,12 +20,10 @@
 
 # End of https://www.gitignore.io/api/go
 
-tests
+tests/*
 cover.html
 
 backomp
-backomp-import
 preprocess-example
-!./cmd/backomp
-!./cmd/backomp-import
-!./cmd/preprocess-example
+!cmd/backomp
+!cmd/preprocess-example
