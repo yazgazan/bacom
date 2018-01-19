@@ -56,7 +56,6 @@ func TestCompare(t *testing.T) {
 		)
 	}
 
-	// TODO(yazgazan): test ignoreNull
 	report, err = Compare([]string{".fizz"}, nil, false, mapA, mapB)
 	if err != nil {
 		t.Errorf("Compare(%q, nil, false, mapA, mapB): unexpected error: %s", []string{".fizz"}, err)

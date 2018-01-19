@@ -24,7 +24,6 @@ func TestSave(t *testing.T) {
 	testSrcDir := path.Join(os.TempDir(), "testSrc")
 	testDstDir := path.Join(os.TempDir(), "testDst")
 	testReqFname := path.Join(testSrcDir, "foo_req.txt")
-	// testRespFname := path.Join(testDstDir, "foo_resp.txt")
 
 	req, err := http.NewRequest("GET", "http://example.org", nil)
 	if err != nil {
