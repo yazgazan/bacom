@@ -1,6 +1,12 @@
 package backomp
 
-import "testing"
+import (
+	"os"
+	"path"
+	"reflect"
+	"sort"
+	"testing"
+)
 
 func TestIsRequestFilename(t *testing.T) {
 	for _, test := range []struct {
@@ -38,6 +44,7 @@ func TestGetResponseFilename(t *testing.T) {
 		{"foo_req24.txt", "foo_resp24.txt", nil},
 		{"_req.txt_req.txt", "_req.txt_resp.txt", nil},
 		{"foo.txt", "", ErrReqInvalidName},
+		{"foo_req.go", "", ErrReqInvalidName},
 		{"_req.txt.txt", "", ErrReqInvalidName},
 		{"", "", ErrReqInvalidName},
 	} {
@@ -51,5 +58,97 @@ func TestGetResponseFilename(t *testing.T) {
 		if err != nil && test.Err == nil {
 			t.Errorf("getResponseFilename(%q): unexpected error %q", test.In, err)
 		}
+	}
+}
+
+func TestGetRequestsFiles(t *testing.T) {
+	testDir := path.Join(os.TempDir(), "TestGetRequestsFiles")
+	testFiles := []string{
+		path.Join(testDir, "foo.txt"),
+		path.Join(testDir, "foo_req.go"),
+		path.Join(testDir, "foo_resp.txt"),
+		path.Join(testDir, "foo_req.txt"),
+		path.Join(testDir, "foo_req0.txt"),
+		path.Join(testDir, "foo_req1.txt"),
+		path.Join(testDir, "foo_req2.txt"),
+		path.Join(testDir, "foo_req10.txt"),
+	}
+	expectedFiles := []string{
+		path.Join(testDir, "foo_req.txt"),
+		path.Join(testDir, "foo_req0.txt"),
+		path.Join(testDir, "foo_req1.txt"),
+		path.Join(testDir, "foo_req2.txt"),
+		path.Join(testDir, "foo_req10.txt"),
+	}
+	sort.Strings(expectedFiles)
+
+	err := os.Mkdir(testDir, 0700)
+	if err != nil {
+		t.Fatalf("failed to create test dir: %s", testDir)
+	}
+	defer func() {
+		err = os.RemoveAll(testDir)
+		if err != nil {
+			t.Logf("failed to remove test dir: %s", err)
+		}
+	}()
+
+	for _, fname := range testFiles {
+		f, err := os.Create(fname)
+		if err != nil {
+			t.Errorf("failed to create test file %q: %s", fname, err)
+			return
+		}
+		err = f.Close()
+		if err != nil {
+			t.Errorf("failed to close test file %q: %s", fname, err)
+			return
+		}
+	}
+
+	err = os.Mkdir(path.Join(testDir, "foo_req11.txt"), 0700)
+	if err != nil {
+		t.Errorf("failed to create test dir: %s", err)
+	}
+
+	files, err := GetRequestsFiles(testDir)
+	if err != nil {
+		t.Errorf("GetRequestsFiles(%q): unexpected error: %s", testDir, err)
+	}
+
+	sort.Strings(files)
+	if !reflect.DeepEqual(files, expectedFiles) {
+		t.Errorf("GetRequestsFiles(%q): %q, expected %q", testDir, files, expectedFiles)
+	}
+}
+
+func TestGetRequestsFilesFail(t *testing.T) {
+	nonExistant := path.Join(os.TempDir(), "does_not_exist")
+	_, err := GetRequestsFiles(nonExistant)
+	if err == nil {
+		t.Errorf("GetRequestsFiles(%q): expected error, got nil", nonExistant)
+	}
+
+	fileNotDir := path.Join(os.TempDir(), "not_a_dir")
+	f, err := os.Create(fileNotDir)
+	if err != nil {
+		t.Errorf("failed to create test file %q: %s", fileNotDir, err)
+		return
+	}
+	defer func() {
+		err = os.Remove(fileNotDir)
+		if err != nil {
+			t.Errorf("failed to remove test file %q: %s", fileNotDir, err)
+		}
+	}()
+	err = f.Close()
+	if err != nil {
+		t.Errorf("failed to close test file %q: %s", fileNotDir, err)
+		return
+	}
+
+	_, err = GetRequestsFiles(fileNotDir)
+	if err == nil {
+		t.Errorf("GetRequestsFiles(%q): expected error, got nil", fileNotDir)
 	}
 }

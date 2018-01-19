@@ -61,7 +61,7 @@ func parseVersion(verbose bool, s string) (*semver.Version, error) {
 		log.Printf("invalid version name %q: %s", s, err)
 	}
 
-	return v, nil
+	return v, err
 }
 
 func logErrors(fname string, errs []error) {

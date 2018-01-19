@@ -13,20 +13,9 @@ func Compare(ignore, ignoreMissing []string, ignoreNull bool, lhs, rhs interface
 		return nil, err
 	}
 
-	d, err = IgnorePrunner(ignore).Prune(d)
-	if err != nil {
-		return nil, err
-	}
-
-	d, err = IgnoreMissingPrunner(ignoreMissing).Prune(d)
-	if err != nil {
-		return nil, err
-	}
-
-	d, err = Prune(d, ignoreNull)
-	if err != nil {
-		return nil, err
-	}
+	d = IgnorePrunner(ignore).Prune(d)
+	d = IgnoreMissingPrunner(ignoreMissing).Prune(d)
+	d = Prune(d, ignoreNull)
 
 	return diff.Report(d, diff.Output{
 		Indent:    "\t",

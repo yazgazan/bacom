@@ -20,6 +20,7 @@ func CompareHeaders(ignore, ignoreContent []string, lhs, rhs http.Header) ([]str
 		}
 		if _, ok := rhs[k]; !ok {
 			results = append(results, missingHeader(k, lhs.Get(k)))
+			continue
 		}
 		if ok, err := containsPattern(ignoreContent, k); err != nil {
 			return results, err

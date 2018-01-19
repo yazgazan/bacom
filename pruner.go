@@ -3,6 +3,7 @@ package backomp
 import (
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/yazgazan/jaydiff/diff"
 )
 
@@ -12,14 +13,14 @@ import (
 // - Excess and Missing values in slices
 // - Values of the same type with different content (excluding slices and maps)
 // - Type difference where null is involved
-func Prune(d diff.Differ, ignoreNull bool) (diff.Differ, error) {
-	return diff.Walk(d, func(parent diff.Differ, d diff.Differ, path string) (diff.Differ, error) {
+func Prune(d diff.Differ, ignoreNull bool) diff.Differ {
+	d, err := diff.Walk(d, func(parent diff.Differ, d diff.Differ, path string) (diff.Differ, error) {
 		switch {
 		case diff.IsScalar(d) && d.Diff() == diff.ContentDiffer:
 			fallthrough
-		case diff.IsExcess(d):
-			fallthrough
 		case ignoreNull && isNil(d):
+			fallthrough
+		case diff.IsExcess(d):
 			fallthrough
 		case diff.IsSlice(parent) && diff.IsMissing(d):
 			return diff.Ignore()
@@ -27,6 +28,11 @@ func Prune(d diff.Differ, ignoreNull bool) (diff.Differ, error) {
 
 		return nil, nil
 	})
+	if err != nil {
+		panic(errors.Wrap(err, "impossible error while pruning"))
+	}
+
+	return d
 }
 
 func isNil(d diff.Differ) bool {
@@ -53,22 +59,33 @@ func isNil(d diff.Differ) bool {
 type IgnorePrunner []string
 
 // Prune Removes ignored diff branches from the diff tree
-func (p IgnorePrunner) Prune(d diff.Differ) (diff.Differ, error) {
-
-	return diff.Walk(d, func(parent diff.Differ, d diff.Differ, path string) (diff.Differ, error) {
+func (p IgnorePrunner) Prune(d diff.Differ) diff.Differ {
+	if len(p) == 0 {
+		return d
+	}
+	d, err := diff.Walk(d, func(parent diff.Differ, d diff.Differ, path string) (diff.Differ, error) {
 		if pathMatches(p, path) {
 			return diff.Ignore()
 		}
 		return nil, nil
 	})
+	if err != nil {
+		panic(errors.Wrap(err, "impossible error while pruning"))
+	}
+
+	return d
 }
 
 // IgnoreMissingPrunner can be used to ignore missing json paths (from the right hand side) in a diff tree
 type IgnoreMissingPrunner []string
 
 // Prune Removes ignored diff branches from the diff tree
-func (p IgnoreMissingPrunner) Prune(d diff.Differ) (diff.Differ, error) {
-	return diff.Walk(d, func(parent diff.Differ, d diff.Differ, path string) (diff.Differ, error) {
+func (p IgnoreMissingPrunner) Prune(d diff.Differ) diff.Differ {
+	if len(p) == 0 {
+		return d
+	}
+
+	d, err := diff.Walk(d, func(parent diff.Differ, d diff.Differ, path string) (diff.Differ, error) {
 		if !diff.IsMissing(d) {
 			return nil, nil
 		}
@@ -79,6 +96,11 @@ func (p IgnoreMissingPrunner) Prune(d diff.Differ) (diff.Differ, error) {
 
 		return nil, nil
 	})
+	if err != nil {
+		panic(errors.Wrap(err, "impossible error while pruning"))
+	}
+
+	return d
 }
 
 func pathMatches(paths []string, path string) bool {

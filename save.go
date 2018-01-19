@@ -19,11 +19,6 @@ func Save(dir, reqFname string, resp *http.Response, body interface{}) (err erro
 		return err
 	}
 
-	err = copyFile(reqFname, path.Join(dir, reqName))
-	if err != nil {
-		return err
-	}
-
 	b := &bytes.Buffer{}
 	err = json.NewEncoder(b).Encode(body)
 	if err != nil {
@@ -33,6 +28,11 @@ func Save(dir, reqFname string, resp *http.Response, body interface{}) (err erro
 	resp.ContentLength = int64(b.Len())
 	if _, ok := resp.Header["Content-Length"]; ok {
 		resp.Header.Set("Content-Length", strconv.Itoa(b.Len()))
+	}
+
+	err = copyFile(reqFname, path.Join(dir, reqName))
+	if err != nil {
+		return err
 	}
 
 	f, err := os.Create(path.Join(dir, respName))
