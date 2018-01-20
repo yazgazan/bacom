@@ -7,7 +7,7 @@ import (
 )
 
 // ReadResponse reads the response in reqFname given the provided request
-func ReadResponse(req *http.Request, reqFname string) (*http.Response, error) {
+func ReadResponse(req *http.Request, reqFname string) (resp *http.Response, err error) {
 	fname, err := GetResponseFilename(reqFname)
 	if err != nil {
 		return nil, err
@@ -17,6 +17,7 @@ func ReadResponse(req *http.Request, reqFname string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer handleClose(&err, f)
 
 	return http.ReadResponse(bufio.NewReader(f), req)
 }

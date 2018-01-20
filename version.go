@@ -3,7 +3,7 @@ package backomp
 import (
 	"log"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/Masterminds/semver"
 	"github.com/pkg/errors"
@@ -45,7 +45,7 @@ func FindVersions(dir string, verbose bool, constraints Constraints) (files []st
 		if !valid {
 			continue
 		}
-		files = append(files, path.Join(dir, fname))
+		files = append(files, filepath.Join(dir, fname))
 	}
 
 	if len(files) == 0 {

@@ -2,7 +2,7 @@ package backomp
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"testing"
@@ -62,23 +62,23 @@ func TestGetResponseFilename(t *testing.T) {
 }
 
 func TestGetRequestsFiles(t *testing.T) {
-	testDir := path.Join(os.TempDir(), "TestGetRequestsFiles")
+	testDir := filepath.Join(os.TempDir(), "TestGetRequestsFiles")
 	testFiles := []string{
-		path.Join(testDir, "foo.txt"),
-		path.Join(testDir, "foo_req.go"),
-		path.Join(testDir, "foo_resp.txt"),
-		path.Join(testDir, "foo_req.txt"),
-		path.Join(testDir, "foo_req0.txt"),
-		path.Join(testDir, "foo_req1.txt"),
-		path.Join(testDir, "foo_req2.txt"),
-		path.Join(testDir, "foo_req10.txt"),
+		filepath.Join(testDir, "foo.txt"),
+		filepath.Join(testDir, "foo_req.go"),
+		filepath.Join(testDir, "foo_resp.txt"),
+		filepath.Join(testDir, "foo_req.txt"),
+		filepath.Join(testDir, "foo_req0.txt"),
+		filepath.Join(testDir, "foo_req1.txt"),
+		filepath.Join(testDir, "foo_req2.txt"),
+		filepath.Join(testDir, "foo_req10.txt"),
 	}
 	expectedFiles := []string{
-		path.Join(testDir, "foo_req.txt"),
-		path.Join(testDir, "foo_req0.txt"),
-		path.Join(testDir, "foo_req1.txt"),
-		path.Join(testDir, "foo_req2.txt"),
-		path.Join(testDir, "foo_req10.txt"),
+		filepath.Join(testDir, "foo_req.txt"),
+		filepath.Join(testDir, "foo_req0.txt"),
+		filepath.Join(testDir, "foo_req1.txt"),
+		filepath.Join(testDir, "foo_req2.txt"),
+		filepath.Join(testDir, "foo_req10.txt"),
 	}
 	sort.Strings(expectedFiles)
 
@@ -106,7 +106,7 @@ func TestGetRequestsFiles(t *testing.T) {
 		}
 	}
 
-	err = os.Mkdir(path.Join(testDir, "foo_req11.txt"), 0700)
+	err = os.Mkdir(filepath.Join(testDir, "foo_req11.txt"), 0700)
 	if err != nil {
 		t.Errorf("failed to create test dir: %s", err)
 	}
@@ -123,13 +123,13 @@ func TestGetRequestsFiles(t *testing.T) {
 }
 
 func TestGetRequestsFilesFail(t *testing.T) {
-	nonExistant := path.Join(os.TempDir(), "does_not_exist")
+	nonExistant := filepath.Join(os.TempDir(), "does_not_exist")
 	_, err := GetRequestsFiles(nonExistant)
 	if err == nil {
 		t.Errorf("GetRequestsFiles(%q): expected error, got nil", nonExistant)
 	}
 
-	fileNotDir := path.Join(os.TempDir(), "not_a_dir")
+	fileNotDir := filepath.Join(os.TempDir(), "not_a_dir")
 	f, err := os.Create(fileNotDir)
 	if err != nil {
 		t.Errorf("failed to create test file %q: %s", fileNotDir, err)

@@ -5,15 +5,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"testing"
 )
 
 func TestReadResponse(t *testing.T) {
-	testFname := path.Join(os.TempDir(), "foo_resp.txt")
-	testReqFname := path.Join(os.TempDir(), "foo_req.txt")
+	testFname := filepath.Join(os.TempDir(), "foo_resp.txt")
+	testReqFname := filepath.Join(os.TempDir(), "foo_req.txt")
 	testContent := []byte(`{
 		"foo": ["bar"]
 	}`)
@@ -63,10 +63,15 @@ func TestReadResponse(t *testing.T) {
 	err = resp.Write(f)
 	if err != nil {
 		errClose := f.Close()
-		if err != nil {
+		if errClose != nil {
 			t.Logf("error closing test response file: %s", errClose)
 		}
 		t.Errorf("writing test response: %s", err)
+		return
+	}
+	err = f.Close()
+	if err != nil {
+		t.Logf("error closing test response file: %s", err)
 		return
 	}
 

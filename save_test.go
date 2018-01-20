@@ -4,7 +4,7 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -21,9 +21,9 @@ func TestSave(t *testing.T) {
 		}
 	}()
 
-	testSrcDir := path.Join(os.TempDir(), "testSrc")
-	testDstDir := path.Join(os.TempDir(), "testDst")
-	testReqFname := path.Join(testSrcDir, "foo_req.txt")
+	testSrcDir := filepath.Join(os.TempDir(), "testSrc")
+	testDstDir := filepath.Join(os.TempDir(), "testDst")
+	testReqFname := filepath.Join(testSrcDir, "foo_req.txt")
 
 	req, err := http.NewRequest("GET", "http://example.org", nil)
 	if err != nil {
@@ -68,6 +68,10 @@ func TestSave(t *testing.T) {
 		}
 		return
 	}
+	err = f.Close()
+	if err != nil {
+		t.Logf("failed to close test req file: %s", err)
+	}
 
 	resp := &http.Response{
 		Status:     "200 OK",
@@ -92,7 +96,7 @@ func TestSave(t *testing.T) {
 
 func TestSaveFail(t *testing.T) {
 	// Save should return an error if the req file is not properly formated
-	testFile := path.Join(os.TempDir(), "foo.txt")
+	testFile := filepath.Join(os.TempDir(), "foo.txt")
 	f, err := os.Create(testFile)
 	if err != nil {
 		t.Fatalf("failed to create test file %q: %s", testFile, err)
@@ -126,7 +130,7 @@ func TestSaveFail(t *testing.T) {
 	}
 
 	// Saving to a non-existant folder should result in an error
-	testFile = path.Join(os.TempDir(), "foo_req.txt")
+	testFile = filepath.Join(os.TempDir(), "foo_req.txt")
 	f, err = os.Create(testFile)
 	if err != nil {
 		t.Fatalf("failed to create test file %q: %s", testFile, err)
@@ -148,7 +152,7 @@ func TestSaveFail(t *testing.T) {
 	}
 
 	// Save should return an error if destination resp file cannot be created
-	testDir := path.Join(os.TempDir(), "TestSaveFail")
+	testDir := filepath.Join(os.TempDir(), "TestSaveFail")
 	err = os.Mkdir(testDir, 0700)
 	if err != nil {
 		t.Errorf("failed to create test dir %q: %s", testDir, err)
@@ -160,11 +164,11 @@ func TestSaveFail(t *testing.T) {
 			t.Errorf("failed to remove test dir %q: %s", testDir, err)
 		}
 	}(testDir)
-	err = os.Mkdir(path.Join(testDir, "bar_resp.txt"), 0700)
+	err = os.Mkdir(filepath.Join(testDir, "bar_resp.txt"), 0700)
 	if err != nil {
-		t.Errorf("failed to create test dir %q: %s", path.Join(testDir, "bar_resp.txt"), err)
+		t.Errorf("failed to create test dir %q: %s", filepath.Join(testDir, "bar_resp.txt"), err)
 	}
-	testFile = path.Join(os.TempDir(), "bar_req.txt")
+	testFile = filepath.Join(os.TempDir(), "bar_req.txt")
 	f, err = os.Create(testFile)
 	if err != nil {
 		t.Fatalf("failed to create test file %q: %s", testFile, err)

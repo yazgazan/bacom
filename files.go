@@ -2,7 +2,7 @@ package backomp
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -36,7 +36,7 @@ func GetRequestsFiles(dirname string) (files []string, err error) {
 			continue
 		}
 
-		files = append(files, path.Join(dirname, fi.Name()))
+		files = append(files, filepath.Join(dirname, fi.Name()))
 	}
 
 	return files, nil

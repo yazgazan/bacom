@@ -2,7 +2,7 @@ package backomp
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"testing"
@@ -11,15 +11,15 @@ import (
 )
 
 func TestFindVersions(t *testing.T) {
-	testDir := path.Join(os.TempDir(), "TestFindVersions")
+	testDir := filepath.Join(os.TempDir(), "TestFindVersions")
 	testDirs := []string{
-		path.Join(testDir, "v."),
-		path.Join(testDir, "v0.0.1"),
-		path.Join(testDir, "v0.0.3"),
-		path.Join(testDir, "v0.1.0"),
-		path.Join(testDir, "v0.1.6"),
-		path.Join(testDir, "v1.1.0"),
-		path.Join(testDir, "v2.0.0"),
+		filepath.Join(testDir, "v."),
+		filepath.Join(testDir, "v0.0.1"),
+		filepath.Join(testDir, "v0.0.3"),
+		filepath.Join(testDir, "v0.1.0"),
+		filepath.Join(testDir, "v0.1.6"),
+		filepath.Join(testDir, "v1.1.0"),
+		filepath.Join(testDir, "v2.0.0"),
 	}
 
 	newConstraint := func(s string) *semver.Constraints {
@@ -56,7 +56,7 @@ func TestFindVersions(t *testing.T) {
 		return
 	}
 	files, err := FindVersions(testDir, true, c)
-	expected := []string{path.Join(testDir, "v0.1.0")}
+	expected := []string{filepath.Join(testDir, "v0.1.0")}
 	if err != nil {
 		t.Errorf("FindVersions(%q, false, %q): unexpected error: %s", testDir, cStr, err)
 	}
@@ -72,8 +72,8 @@ func TestFindVersions(t *testing.T) {
 	files, err = FindVersions(testDir, true, c)
 	sort.Strings(files)
 	expected = []string{
-		path.Join(testDir, "v0.1.0"),
-		path.Join(testDir, "v0.1.6"),
+		filepath.Join(testDir, "v0.1.0"),
+		filepath.Join(testDir, "v0.1.6"),
 	}
 	sort.Strings(expected)
 	if err != nil {
@@ -90,7 +90,7 @@ func TestFindVersionsFail(t *testing.T) {
 		t.Errorf("FindVersions(%q): expected error, got nil", "does_not_exist")
 	}
 
-	fileNotDir := path.Join(os.TempDir(), "not_a_dir")
+	fileNotDir := filepath.Join(os.TempDir(), "not_a_dir")
 	f, err := os.Create(fileNotDir)
 	if err != nil {
 		t.Errorf("failed to create test file %q: %s", fileNotDir, err)
