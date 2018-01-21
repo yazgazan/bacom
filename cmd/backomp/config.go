@@ -28,7 +28,7 @@ var (
 					"Age", "Content-MD5", "Content-Range", "Date",
 					"Expires", "Last-Modified", "Public-Key-Pins",
 					"Server", "Set-Cookie", "Etag", "Retry-After",
-					"X-*",
+					"X-*", "Content-Length",
 				},
 			},
 		},
