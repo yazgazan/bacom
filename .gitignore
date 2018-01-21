@@ -27,3 +27,4 @@ backomp
 preprocess-example
 !cmd/backomp
 !cmd/preprocess-example
+.idea

@@ -9,10 +9,17 @@ import (
 
 	"github.com/Masterminds/semver"
 	"github.com/pkg/errors"
+	"net/http"
+	"bytes"
+	"io"
+	"io/ioutil"
 )
 
 const (
-	defaultDir = "backomp-tests"
+	defaultDir    = "backomp-tests"
+	importCmdName = "import"
+	testCmdName   = "test"
+	curlCmdName = "curl"
 )
 
 var (
@@ -79,6 +86,7 @@ func printGlobalUsage() {
 COMMANDS:
     test    run existing tests
     import  import requests from HAR files
+    curl    save a request/response pair by providing curl-like arguments
 
 Note:
     "%s COMMAND -h" to get an overview of each command's flags
@@ -102,7 +110,7 @@ func getCommand() (cmd string, args []string) {
 	default:
 		fmt.Fprintf(os.Stderr, "Error: unknown command %q\n", cmd)
 		os.Exit(2)
-	case "test", "import":
+	case testCmdName, importCmdName, curlCmdName:
 		return strings.ToLower(cmd), args
 	}
 
@@ -136,7 +144,7 @@ func parseTestFlags(args []string) (c testConf, err error) {
 		Paths:       defaultPathsConfig,
 	}
 
-	flags := flag.NewFlagSet(getBinaryName()+" test", flag.ExitOnError)
+	flags := flag.NewFlagSet(getBinaryName()+" "+testCmdName, flag.ExitOnError)
 
 	flags.StringVar(&c.Dir, "dir", defaultDir, "directory containing the tests")
 	flags.Var(&c.Constraints, "version", "test version")
@@ -178,9 +186,7 @@ type importConf struct {
 }
 
 func parseImportFlags(args []string) (c importConf, err error) {
-	c = importConf{}
-
-	flags := flag.NewFlagSet(getBinaryName()+" import", flag.ExitOnError)
+	flags := flag.NewFlagSet(getBinaryName()+" "+importCmdName, flag.ExitOnError)
 
 	flags.StringVar(&c.Dir, "out", ".", "output directory")
 	err = flags.Parse(args)
@@ -189,6 +195,115 @@ func parseImportFlags(args []string) (c importConf, err error) {
 	}
 
 	c.Files = flags.Args()
+
+	return c, nil
+}
+
+type headers map[string][]string
+
+func (h *headers) String() string {
+	b := &bytes.Buffer{}
+
+	err := http.Header(*h).Write(b)
+	if err != nil {
+		return ""
+	}
+
+	return b.String()
+}
+
+func (h *headers) Set(s string) error {
+	parts := strings.SplitN(s, ":", 2)
+	if len(parts) != 2 {
+		return errors.Errorf("invalid header %q", s)
+	}
+	if *h == nil {
+		*h = make(map[string][]string)
+	}
+
+	http.Header(*h).Add(parts[0], parts[1])
+
+	return nil
+}
+
+type dataFlag struct {
+	io.ReadCloser
+}
+
+func (f dataFlag) String() string {
+	return ""
+}
+
+func (f *dataFlag) Set(s string) error {
+	if s == "" || s[0] != '@' {
+		f.ReadCloser = ioutil.NopCloser(strings.NewReader(s))
+
+		return nil
+	}
+
+	fname := s[1:]
+	file, err := os.Open(fname)
+	if err != nil {
+		return errors.Wrapf(err, "opening %q", fname)
+	}
+	f.ReadCloser = file
+
+	return nil
+}
+
+type dataRawFlag struct {
+	io.ReadCloser
+}
+
+func (f dataRawFlag) String() string {
+	return ""
+}
+
+func (f *dataRawFlag) Set(s string) error {
+	f.ReadCloser = ioutil.NopCloser(strings.NewReader(s))
+
+	return nil
+}
+
+type curlConf struct {
+	// CURL options
+	Method string
+	URL string
+	Headers headers
+	Data dataFlag
+
+	// backomp options
+	Name string
+	Dir string
+}
+
+func parseCurlFlags(args []string) (c curlConf, err error) {
+	flags := flag.NewFlagSet(getBinaryName()+" "+curlCmdName, flag.ExitOnError)
+
+	flags.StringVar(
+		&c.Name, "name", "",
+		"name to save the request/response under (without the _req.txt suffix)",
+	)
+	flags.StringVar(&c.Dir, "dir", "", "folder to save the request/response files in")
+
+	flags.StringVar(&c.Method, "X", "GET", "Specify request command to use")
+	flags.StringVar(&c.URL, "url", "", "URL to work with")
+	flags.Var(&c.Headers, "H", "Pass custom header to server (can be repeated)")
+
+	flags.Var(&c.Data, "d", "HTTP POST data")
+	flags.Var(&c.Data, "data", "HTTP POST data")
+	flags.Var(&c.Data, "data-ascii", "HTTP POST ASCII data")
+	flags.Var(&c.Data, "data-binary", "HTTP POST binary data")
+	flags.Var((*dataRawFlag)(&c.Data), "data-raw", "HTTP POST data, '@' allowed")
+
+	flags.Parse(args)
+
+	if len(flags.Args()) >= 2 {
+		return c, errors.Errorf("expected one positional argument, got %d", len(flags.Args()))
+	}
+	if len(flags.Args()) == 1 {
+		c.URL = flags.Args()[0]
+	}
 
 	return c, nil
 }

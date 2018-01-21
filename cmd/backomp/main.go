@@ -11,9 +11,11 @@ func main() {
 	switch cmd {
 	default:
 		fmt.Fprintf(os.Stderr, "command %q not implemented yet\n", cmd)
-	case "test":
+	case testCmdName:
 		testCmd(args)
-	case "import":
+	case importCmdName:
 		importCmd(args)
+	case curlCmdName:
+		curlCmd(args)
 	}
 }
