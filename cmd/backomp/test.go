@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/pkg/errors"
 	"github.com/yazgazan/backomp"
@@ -26,7 +26,7 @@ func testCmd(args []string) {
 	}
 
 	if c.Save != "" {
-		if err = os.MkdirAll(path.Join(c.Dir, c.Save), 0700); err != nil {
+		if err = os.MkdirAll(filepath.Join(c.Dir, c.Save), 0700); err != nil {
 			fmt.Fprintln(os.Stderr, "Error:", err)
 			os.Exit(1)
 		}
@@ -69,7 +69,7 @@ func runTestsForVersion(conf testConf, dirname string) (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		printPass(ok, conf.Quiet, path.Join(dirname, fname))
+		printPass(ok, conf.Quiet, filepath.Join(dirname, fname))
 		passed = passed && ok
 	}
 
@@ -119,7 +119,7 @@ func runTest(conf testConf, fname string) (pass bool, err error) {
 		return false, err
 	}
 	if conf.Save != "" {
-		err = backomp.Save(path.Join(conf.Dir, conf.Save), fname, targetResp, targetBody)
+		err = backomp.Save(filepath.Join(conf.Dir, conf.Save), fname, targetResp, targetBody)
 		if err != nil {
 			return false, err
 		}

@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/yazgazan/backomp/har"
@@ -47,9 +47,9 @@ func _fileName(name, dest, suffix string, i int) (string, error) {
 	var fname string
 
 	if i == 0 {
-		fname = path.Join(dest, name+suffix+".txt")
+		fname = filepath.Join(dest, name+suffix+".txt")
 	} else {
-		fname = path.Join(dest, name+fmt.Sprintf("%s%d.txt", suffix, i))
+		fname = filepath.Join(dest, name+fmt.Sprintf("%s%d.txt", suffix, i))
 	}
 
 	_, err := os.Stat(fname)
