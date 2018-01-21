@@ -296,7 +296,10 @@ func parseCurlFlags(args []string) (c curlConf, err error) {
 	flags.Var(&c.Data, "data-binary", "HTTP POST binary data")
 	flags.Var((*dataRawFlag)(&c.Data), "data-raw", "HTTP POST data, '@' allowed")
 
-	flags.Parse(args)
+	err = flags.Parse(args)
+	if err != nil {
+		return c, err
+	}
 
 	if len(flags.Args()) >= 2 {
 		return c, errors.Errorf("expected one positional argument, got %d", len(flags.Args()))

@@ -9,7 +9,22 @@ import (
 	"io"
 	"bytes"
 	"path/filepath"
+	"log"
 )
+
+func closeOrExit(c io.Closer) {
+	err := c.Close()
+	logAndExitOnError(err)
+}
+
+func logAndExitOnError(err error) {
+	if err == nil {
+		return
+	}
+
+	log.Print("Error:", err)
+	os.Exit(1)
+}
 
 func curlCmd(args []string) {
 	c, err := parseCurlFlags(args)
@@ -17,67 +32,41 @@ func curlCmd(args []string) {
 		fmt.Fprintln(os.Stderr, "Error:", err)
 		os.Exit(1)
 	}
-	defer func() {
-		err = c.Data.Close()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error:", err)
-			os.Exit(1)
-		}
-	}()
+	defer closeOrExit(c.Data)
 
 	buf := &bytes.Buffer{}
 	r := io.TeeReader(c.Data, buf)
 	req, err := newRequest(c.Method, c.URL, http.Header(c.Headers), r)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
-	}
+	logAndExitOnError(err)
 
 	if c.Name == "" {
-		resp.Write(os.Stdout)
+		err = req.Write(os.Stdout)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error:", err)
+			os.Exit(1)
+		}
 		return
 	}
 
+	resp, err := http.DefaultClient.Do(req)
+	logAndExitOnError(err)
+
 	req, err = newRequest(c.Method, c.URL, http.Header(c.Headers), buf)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
-	}
+	logAndExitOnError(err)
 
 	reqFile := filepath.Join(c.Dir, c.Name + "_req.txt")
 	f, err := os.Create(reqFile)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
-	}
+	logAndExitOnError(err)
 	err = req.Write(f)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
-	}
+	logAndExitOnError(err)
 
 	respFile, err := backomp.GetResponseFilename(reqFile)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
-	}
+	logAndExitOnError(err)
 	f, err = os.Create(respFile)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
-	}
-	defer f.Close()
+	logAndExitOnError(err)
+	defer closeOrExit(f)
 	err = resp.Write(f)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
-	}
+	logAndExitOnError(err)
 
 }
 

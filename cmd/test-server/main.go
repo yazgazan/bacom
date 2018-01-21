@@ -5,11 +5,11 @@ import (
 	"log"
 	"net/http"
 	"strings"
-
 	"flag"
-	"github.com/pkg/errors"
 	"os"
-	"io"
+
+	"github.com/pkg/errors"
+
 )
 
 type version string
@@ -27,7 +27,7 @@ func (v version) String() string {
 func (v *version) Set(s string) error {
 	switch strings.ToLower(s) {
 	default:
-		errors.Errorf("unknown version %q. Available versions: v0, v1, v2")
+		return errors.Errorf("unknown version %q. Available versions: v0, v1, v2", s)
 	case "0", "v0":
 		*v = v0
 	case "1", "v1":
@@ -74,23 +74,32 @@ func setV2Headers(h http.Header) {
 func v0Handler(w http.ResponseWriter, req *http.Request) {
 	setV0Headers(w.Header())
 
-	io.Copy(os.Stdout, req.Body)
-	defer req.Body.Close()
+	defer func() {
+		err := req.Body.Close()
+		if err != nil {
+			log.Print("Error:", err)
+		}
+	}()
+
 	err := json.NewEncoder(w).Encode(V0{
 		Foo: "bar",
 		Bar: 42,
 	})
 
 	if err != nil {
-		log.Printf("error encoding v0 response: ", err)
+		log.Print("error encoding v0 response:", err)
 	}
 }
 
 func v1Handler(w http.ResponseWriter, req *http.Request) {
 	setV1Headers(w.Header())
 
-	io.Copy(os.Stdout, req.Body)
-	defer req.Body.Close()
+	defer func() {
+		err := req.Body.Close()
+		if err != nil {
+			log.Print("Error:", err)
+		}
+	}()
 
 	err := json.NewEncoder(w).Encode(V1{
 		Foo:  "hello world",
@@ -99,15 +108,19 @@ func v1Handler(w http.ResponseWriter, req *http.Request) {
 	})
 
 	if err != nil {
-		log.Printf("error encoding v0 response: ", err)
+		log.Print("error encoding v0 response:", err)
 	}
 }
 
 func v2Handler(w http.ResponseWriter, req *http.Request) {
 	setV2Headers(w.Header())
 
-	io.Copy(os.Stdout, req.Body)
-	defer req.Body.Close()
+	defer func() {
+		err := req.Body.Close()
+		if err != nil {
+			log.Print("Error:", err)
+		}
+	}()
 
 	err := json.NewEncoder(w).Encode(V2{
 		Foo:  "bar",
@@ -116,7 +129,7 @@ func v2Handler(w http.ResponseWriter, req *http.Request) {
 	})
 
 	if err != nil {
-		log.Printf("error encoding v0 response: ", err)
+		log.Print("error encoding v0 response:", err)
 	}
 }
 
