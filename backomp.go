@@ -17,7 +17,6 @@ func ReadResponse(req *http.Request, reqFname string) (resp *http.Response, err 
 	if err != nil {
 		return nil, err
 	}
-	defer handleClose(&err, f)
 
 	return http.ReadResponse(bufio.NewReader(f), req)
 }
