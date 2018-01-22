@@ -1,0 +1,7 @@
+HTTP/1.1 200 OK
+Content-Length: 42
+Cache-Control: no-cache
+Content-Type: application/json
+Date: Mon, 22 Jan 2018 12:41:29 GMT
+
+{"Bar":23,"Buzz":1.2,"Foo":"hello world"}

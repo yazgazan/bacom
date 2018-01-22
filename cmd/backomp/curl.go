@@ -1,15 +1,15 @@
 package main
 
 import (
-	"github.com/yazgazan/backomp"
-
-	"fmt"
-	"os"
-	"net/http"
-	"io"
 	"bytes"
-	"path/filepath"
+	"fmt"
+	"io"
 	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+
+	"github.com/yazgazan/backomp"
 )
 
 func closeOrExit(c io.Closer) {
@@ -54,7 +54,7 @@ func curlCmd(args []string) {
 	req, err = newRequest(c.Method, c.URL, http.Header(c.Headers), buf)
 	logAndExitOnError(err)
 
-	reqFile := filepath.Join(c.Dir, c.Name + "_req.txt")
+	reqFile := filepath.Join(c.Dir, c.Name+"_req.txt")
 	f, err := os.Create(reqFile)
 	logAndExitOnError(err)
 	err = req.Write(f)

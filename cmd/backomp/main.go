@@ -17,5 +17,7 @@ func main() {
 		importCmd(args)
 	case curlCmdName:
 		curlCmd(args)
+	case listCmdName:
+		listCmd(args)
 	}
 }

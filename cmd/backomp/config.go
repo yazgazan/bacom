@@ -1,25 +1,26 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
 
 	"github.com/Masterminds/semver"
 	"github.com/pkg/errors"
-	"net/http"
-	"bytes"
-	"io"
-	"io/ioutil"
 )
 
 const (
 	defaultDir    = "backomp-tests"
 	importCmdName = "import"
 	testCmdName   = "test"
-	curlCmdName = "curl"
+	curlCmdName   = "curl"
+	listCmdName   = "list"
 )
 
 var (
@@ -87,6 +88,7 @@ COMMANDS:
     test    run existing tests
     import  import requests from HAR files
     curl    save a request/response pair by providing curl-like arguments
+    list    lists tests information
 
 Note:
     "%s COMMAND -h" to get an overview of each command's flags
@@ -110,7 +112,7 @@ func getCommand() (cmd string, args []string) {
 	default:
 		fmt.Fprintf(os.Stderr, "Error: unknown command %q\n", cmd)
 		os.Exit(2)
-	case testCmdName, importCmdName, curlCmdName:
+	case testCmdName, importCmdName, curlCmdName, listCmdName:
 		return strings.ToLower(cmd), args
 	}
 
@@ -251,6 +253,22 @@ func (f *dataFlag) Set(s string) error {
 	return nil
 }
 
+func (f dataFlag) Read(p []byte) (n int, err error) {
+	if f.ReadCloser == nil {
+		return 0, io.EOF
+	}
+
+	return f.ReadCloser.Read(p)
+}
+
+func (f dataFlag) Close() error {
+	if f.ReadCloser == nil {
+		return nil
+	}
+
+	return f.ReadCloser.Close()
+}
+
 type dataRawFlag struct {
 	io.ReadCloser
 }
@@ -267,14 +285,14 @@ func (f *dataRawFlag) Set(s string) error {
 
 type curlConf struct {
 	// CURL options
-	Method string
-	URL string
+	Method  string
+	URL     string
 	Headers headers
-	Data dataFlag
+	Data    dataFlag
 
 	// backomp options
 	Name string
-	Dir string
+	Dir  string
 }
 
 func parseCurlFlags(args []string) (c curlConf, err error) {
@@ -309,4 +327,25 @@ func parseCurlFlags(args []string) (c curlConf, err error) {
 	}
 
 	return c, nil
+}
+
+type listConf struct {
+	Dir         string
+	Long        bool
+	Constraints constraints
+}
+
+func parseListFlags(args []string) (c listConf, err error) {
+	c = listConf{
+		Constraints: defaultConstraints,
+	}
+
+	flags := flag.NewFlagSet(getBinaryName()+" "+listCmdName, flag.ExitOnError)
+
+	flags.StringVar(&c.Dir, "dir", defaultDir, "folder containing the tests")
+	flags.BoolVar(&c.Long, "l", false, "prints detailed listing")
+	flags.Var(&c.Constraints, "version", "constraint listing to these tests")
+	err = flags.Parse(args)
+
+	return c, err
 }

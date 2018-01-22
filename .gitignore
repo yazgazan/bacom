@@ -25,6 +25,8 @@ cover.html
 
 backomp
 preprocess-example
+test-server
 !cmd/backomp
 !cmd/preprocess-example
+!cmd/test-server
 .idea

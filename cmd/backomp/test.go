@@ -60,7 +60,7 @@ func printPass(pass, quiet bool, fname string) {
 func runTestsForVersion(conf testConf, dirname string) (bool, error) {
 	reqFiles, err := backomp.GetRequestsFiles(dirname)
 	if err != nil {
-		return false, err
+		return false, errors.Wrapf(err, "looking for requests files in %q", dirname)
 	}
 
 	passed := true
@@ -85,7 +85,7 @@ func runTest(conf testConf, fname string) (pass bool, err error) {
 		defer handleClose(&err, baseResp.Body)
 	}
 	if err != nil {
-		return false, err
+		return false, errors.Wrapf(err, "getting responses for %q", fname)
 	}
 
 	pConf := getPathConf(conf.Paths, reqPath)
@@ -97,16 +97,16 @@ func runTest(conf testConf, fname string) (pass bool, err error) {
 		targetResp.Header,
 	)
 	if err != nil {
-		return false, err
+		return false, errors.Wrapf(err, "comparing headers for %q", fname)
 	}
 
 	targetBody, err := readBody(targetResp)
 	if err != nil {
-		return false, err
+		return false, errors.Wrapf(err, "reading target response body")
 	}
 	baseBody, err := readBody(baseResp)
 	if err != nil {
-		return false, err
+		return false, errors.Wrapf(err, "reading base response body")
 	}
 	bodyResults, err := backomp.Compare(
 		pConf.JSON.Ignore,
@@ -116,12 +116,12 @@ func runTest(conf testConf, fname string) (pass bool, err error) {
 		targetBody,
 	)
 	if err != nil {
-		return false, err
+		return false, errors.Wrapf(err, "comparing bodies")
 	}
 	if conf.Save != "" {
 		err = backomp.Save(filepath.Join(conf.Dir, conf.Save), fname, targetResp, targetBody)
 		if err != nil {
-			return false, err
+			return false, errors.Wrapf(err, "saving request/response to %s for %q", conf.Save, fname)
 		}
 	}
 	results = append(results, bodyResults...)

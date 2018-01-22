@@ -1,6 +1,0 @@
-HTTP/1.1 200 OK
-Content-Length: 42
-Content-Type: application/json
-Date: Sun, 21 Jan 2018 12:28:22 GMT
-
-{"Bar":23,"Buzz":1.2,"Foo":"hello world"}

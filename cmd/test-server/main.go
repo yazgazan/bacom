@@ -1,15 +1,15 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"flag"
 	"log"
 	"net/http"
-	"strings"
-	"flag"
 	"os"
+	"strings"
 
 	"github.com/pkg/errors"
-
 )
 
 type version string
@@ -65,10 +65,12 @@ func setV0Headers(h http.Header) {
 
 func setV1Headers(h http.Header) {
 	h.Set("Content-Type", "application/json")
+	h.Set("Cache-Control", "no-cache")
 }
 
 func setV2Headers(h http.Header) {
 	h.Set("Content-Type", "application/json")
+	h.Set("Cache-Control", "max-age=300")
 }
 
 func v0Handler(w http.ResponseWriter, req *http.Request) {
@@ -147,7 +149,13 @@ func main() {
 		Handler: mux,
 	}
 	mux.HandleFunc("/stop", func(w http.ResponseWriter, r *http.Request) {
-		os.Exit(0)
+		go func() {
+			err := srv.Shutdown(context.Background())
+			if err != nil {
+				log.Fatal("Error:", err)
+			}
+			os.Exit(0)
+		}()
 	})
 
 	switch v {
@@ -164,7 +172,7 @@ func main() {
 	log.Printf("running version %s of the server", v)
 	log.Printf("listening on %s", listen)
 	err := srv.ListenAndServe()
-	if err != nil {
+	if err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
 }
