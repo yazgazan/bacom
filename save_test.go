@@ -6,11 +6,9 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/pkg/errors"
 )
 
-func TestSave(t *testing.T) {
+func TestSaveResponse(t *testing.T) {
 	needClosing := make(map[string]io.Closer)
 	defer func() {
 		for fname, closer := range needClosing {
@@ -86,16 +84,14 @@ func TestSave(t *testing.T) {
 		Request: req,
 	}
 
-	err = Save(testDstDir, testReqFname, resp, map[string]interface{}{
-		"foo": []interface{}{"bar"},
-	})
+	err = SaveResponse(testDstDir, testReqFname, resp)
 	if err != nil {
-		t.Errorf("Save(...): unexpected error: %s", err)
+		t.Errorf("SaveResponse(...): unexpected error: %s", err)
 	}
 }
 
-func TestSaveFail(t *testing.T) {
-	// Save should return an error if the req file is not properly formated
+func TestSaveResponseFail(t *testing.T) {
+	// SaveResponse should return an error if the req file is not properly formated
 	testFile := filepath.Join(os.TempDir(), "foo.txt")
 	f, err := os.Create(testFile)
 	if err != nil {
@@ -112,47 +108,20 @@ func TestSaveFail(t *testing.T) {
 		t.Errorf("failed to close test file %q: %s", testFile, err)
 		return
 	}
-	err = Save(os.TempDir(), testFile, &http.Response{}, nil)
+	err = SaveResponse(os.TempDir(), testFile, &http.Response{})
 	if err == nil {
-		t.Errorf("Save(..., %q, ...): expected error, got nil", "foo.txt")
-	}
-
-	// Save should return an error if the req file doesn't exist
-	err = Save(os.TempDir(), "foo_req.txt", &http.Response{}, nil)
-	if err == nil {
-		t.Errorf("Save(..., %q, ...): expected error, got nil", "foo.txt")
-	}
-
-	// Save should return an error if the body cannot be marshaled to JSON
-	err = Save(os.TempDir(), "foo_req.txt", &http.Response{}, jsonFailer{})
-	if err == nil {
-		t.Errorf("Save(..., %q, ...): expected error, got nil", "foo.txt")
+		t.Errorf("SaveResponse(..., %q, ...): expected error, got nil", "foo.txt")
 	}
 
 	// Saving to a non-existant folder should result in an error
 	testFile = filepath.Join(os.TempDir(), "foo_req.txt")
-	f, err = os.Create(testFile)
-	if err != nil {
-		t.Fatalf("failed to create test file %q: %s", testFile, err)
-	}
-	defer func(testFile string) {
-		err = os.Remove(testFile)
-		if err != nil {
-			t.Errorf("failed to remove test file %q: %s", testFile, err)
-		}
-	}(testFile)
-	err = f.Close()
-	if err != nil {
-		t.Errorf("failed to close test file %q: %s", testFile, err)
-		return
-	}
-	err = Save("does_not_exist", testFile, &http.Response{}, nil)
+	err = SaveResponse("does_not_exist", testFile, &http.Response{})
 	if err == nil {
-		t.Errorf("Save(%q, ...): expected error, got nil", "does_not_exist")
+		t.Errorf("SaveResponse(%q, ...): expected error, got nil", "does_not_exist")
 	}
 
-	// Save should return an error if destination resp file cannot be created
-	testDir := filepath.Join(os.TempDir(), "TestSaveFail")
+	// SaveResponse should return an error if destination resp file cannot be created
+	testDir := filepath.Join(os.TempDir(), "TestSaveResponseFail")
 	err = os.Mkdir(testDir, 0700)
 	if err != nil {
 		t.Errorf("failed to create test dir %q: %s", testDir, err)
@@ -184,14 +153,8 @@ func TestSaveFail(t *testing.T) {
 		t.Errorf("failed to close test file %q: %s", testFile, err)
 		return
 	}
-	err = Save(testDir, testFile, &http.Response{}, nil)
+	err = SaveResponse(testDir, testFile, &http.Response{})
 	if err == nil {
-		t.Errorf("Save(%q, %q, ...): expected error, got nil", testDir, testFile)
+		t.Errorf("SaveResponse(%q, %q, ...): expected error, got nil", testDir, testFile)
 	}
-}
-
-type jsonFailer struct{}
-
-func (jsonFailer) MarshalJSON() ([]byte, error) {
-	return nil, errors.New("test json error")
 }
