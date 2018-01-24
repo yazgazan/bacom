@@ -53,7 +53,7 @@ SUB-COMMANDS:
     curl   save a request/response pair by providing curl-like arguments
 
 Note:
-    "%s COMMAND -h" to get an overview of each command's flags
+    "%s import SUB-COMMAND -h" to get an overview of each sub-command's flags
 
 `,
 		bin, bin,

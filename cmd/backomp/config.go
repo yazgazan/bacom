@@ -188,8 +188,8 @@ type importConf struct {
 	Verbose bool
 }
 
-func parseImportFlags(args []string) (c importConf, err error) {
-	flags := flag.NewFlagSet(getBinaryName()+" "+importCmdName, flag.ExitOnError)
+func parseImportHARFlags(args []string) (c importConf, err error) {
+	flags := flag.NewFlagSet(getBinaryName()+" "+importCmdName+" "+harSubCmdName, flag.ExitOnError)
 
 	flags.StringVar(&c.Dir, "out", ".", "output directory")
 	flags.BoolVar(&c.Verbose, "v", false, "verbose")
@@ -303,7 +303,7 @@ func parseCurlFlags(args []string) (c curlConf, err error) {
 		args = append(args[1:], args[0])
 	}
 
-	flags := flag.NewFlagSet(getBinaryName()+" "+curlSubCmdName, flag.ExitOnError)
+	flags := flag.NewFlagSet(getBinaryName()+" "+importCmdName+" "+curlSubCmdName, flag.ExitOnError)
 
 	flags.StringVar(
 		&c.Name, "name", "",

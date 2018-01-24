@@ -30,3 +30,4 @@ test-server
 !cmd/preprocess-example
 !cmd/test-server
 .idea
+dist

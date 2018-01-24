@@ -15,7 +15,7 @@ import (
 )
 
 func importHarCmd(args []string) {
-	c, err := parseImportFlags(args)
+	c, err := parseImportHARFlags(args)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
 		os.Exit(1)
