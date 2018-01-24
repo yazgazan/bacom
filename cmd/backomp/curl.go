@@ -26,7 +26,7 @@ func logAndExitOnError(err error) {
 	os.Exit(1)
 }
 
-func curlCmd(args []string) {
+func importCurlCmd(args []string) {
 	c, err := parseCurlFlags(args)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
@@ -59,6 +59,9 @@ func curlCmd(args []string) {
 	logAndExitOnError(err)
 	err = req.Write(f)
 	logAndExitOnError(err)
+	if c.Verbose {
+		fmt.Fprintf(os.Stderr, "imported %q\n", reqFile)
+	}
 
 	respFile, err := backomp.GetResponseFilename(reqFile)
 	logAndExitOnError(err)
@@ -68,6 +71,9 @@ func curlCmd(args []string) {
 	err = resp.Write(f)
 	logAndExitOnError(err)
 
+	if c.Verbose {
+		fmt.Fprintf(os.Stderr, "imported %q\n", respFile)
+	}
 }
 
 func newRequest(method, url string, h http.Header, body io.Reader) (*http.Request, error) {

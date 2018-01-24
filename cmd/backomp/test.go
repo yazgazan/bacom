@@ -2,14 +2,19 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/yazgazan/backomp"
+	"golang.org/x/sync/errgroup"
 )
 
 func testCmd(args []string) {
@@ -76,7 +81,73 @@ func runTestsForVersion(conf testConf, dirname string) (bool, error) {
 	return passed, nil
 }
 
+func compareStatuses(lhsCode, rhsCode int, lhs, rhs string) []string {
+	if lhsCode == rhsCode {
+		return nil
+	}
+
+	return []string{
+		"- (Status) " + color.RedString(lhs),
+		"+ (Status) " + color.GreenString(rhs),
+	}
+}
+
+func compareResponses(
+	conf testConf,
+	reqPath,
+	fname string,
+	baseResp, targetResp *http.Response,
+) (results []string, err error) {
+	pConf := getPathConf(conf.Paths, reqPath)
+
+	targetBody, err := readBody(targetResp)
+	if err != nil {
+		return nil, errors.Wrapf(err, "reading target response body")
+	}
+	baseBody, err := readBody(baseResp)
+	if err != nil {
+		return nil, errors.Wrapf(err, "reading base response body")
+	}
+
+	results, err = backomp.CompareHeaders(
+		pConf.Headers.Ignore,
+		pConf.Headers.IgnoreContent,
+		baseResp.Header,
+		targetResp.Header,
+	)
+	if err != nil {
+		return results, errors.Wrapf(err, "comparing headers for %q", fname)
+	}
+
+	results = append(compareStatuses(
+		baseResp.StatusCode, targetResp.StatusCode,
+		baseResp.Status, targetResp.Status,
+	), results...)
+
+	bodyResults, err := backomp.Compare(
+		pConf.JSON.Ignore,
+		pConf.JSON.IgnoreMissing,
+		pConf.JSON.IgnoreNull,
+		baseBody,
+		targetBody,
+	)
+	if err != nil {
+		return results, errors.Wrapf(err, "comparing bodies")
+	}
+
+	results = append(results, bodyResults...)
+
+	return results, nil
+}
+
+type readCloser struct {
+	io.Reader
+	io.Closer
+}
+
 func runTest(conf testConf, fname string) (pass bool, err error) {
+	var results []string
+
 	targetResp, baseResp, reqPath, err := getResponses(conf, fname)
 	if targetResp != nil {
 		defer handleClose(&err, targetResp.Body)
@@ -88,43 +159,50 @@ func runTest(conf testConf, fname string) (pass bool, err error) {
 		return false, errors.Wrapf(err, "getting responses for %q", fname)
 	}
 
-	pConf := getPathConf(conf.Paths, reqPath)
+	errg := &errgroup.Group{}
 
-	results, err := backomp.CompareHeaders(
-		pConf.Headers.Ignore,
-		pConf.Headers.IgnoreContent,
-		baseResp.Header,
-		targetResp.Header,
-	)
-	if err != nil {
-		return false, errors.Wrapf(err, "comparing headers for %q", fname)
-	}
-
-	targetBody, err := readBody(targetResp)
-	if err != nil {
-		return false, errors.Wrapf(err, "reading target response body")
-	}
-	baseBody, err := readBody(baseResp)
-	if err != nil {
-		return false, errors.Wrapf(err, "reading base response body")
-	}
-	bodyResults, err := backomp.Compare(
-		pConf.JSON.Ignore,
-		pConf.JSON.IgnoreMissing,
-		pConf.JSON.IgnoreNull,
-		baseBody,
-		targetBody,
-	)
-	if err != nil {
-		return false, errors.Wrapf(err, "comparing bodies")
-	}
 	if conf.Save != "" {
-		err = backomp.Save(filepath.Join(conf.Dir, conf.Save), fname, targetResp, targetBody)
-		if err != nil {
-			return false, errors.Wrapf(err, "saving request/response to %s for %q", conf.Save, fname)
+		b := &bytes.Buffer{}
+		r := io.TeeReader(targetResp.Body, b)
+		saveResp := &http.Response{}
+		*saveResp = *targetResp
+		targetResp.Body = readCloser{
+			Reader: r,
+			Closer: targetResp.Body,
 		}
+		saveResp.Body = ioutil.NopCloser(b)
+		errg.Go(func() error {
+			err = backomp.SaveRequest(filepath.Join(conf.Dir, conf.Save), fname)
+			if err != nil {
+				return err
+			}
+
+			err = backomp.SaveResponse(filepath.Join(conf.Dir, conf.Save), fname, saveResp)
+			if err != nil {
+				return errors.Wrapf(err, "saving request/response to %s for %q", conf.Save, fname)
+			}
+
+			return nil
+		})
 	}
-	results = append(results, bodyResults...)
+
+	if baseResp != nil {
+		errg.Go(func() error {
+			var errCmp error
+
+			results, errCmp = compareResponses(
+				conf, reqPath, fname,
+				baseResp, targetResp,
+			)
+
+			return errCmp
+		})
+	}
+
+	err = errg.Wait()
+	if err != nil {
+		return false, err
+	}
 
 	printResults(fname, results)
 
@@ -141,8 +219,15 @@ func printResults(fname string, results []string) {
 }
 
 func readBody(resp *http.Response) (body interface{}, err error) {
+	if resp == nil {
+		return nil, nil
+	}
+
 	err = json.NewDecoder(resp.Body).Decode(&body)
 
+	if err == io.EOF {
+		return nil, nil
+	}
 	return body, err
 }
 
@@ -161,6 +246,9 @@ func getResponses(conf testConf, fname string) (target, base *http.Response, pat
 		return target, nil, "", err
 	}
 	base, err = getBaseResponse(req, fname, conf.Base)
+	if os.IsNotExist(err) {
+		return target, nil, req.URL.Path, nil
+	}
 	if err != nil {
 		return target, nil, "", errors.Wrapf(err, "getting base response for %q", fname)
 	}

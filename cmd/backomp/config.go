@@ -19,8 +19,10 @@ const (
 	defaultDir    = "backomp-tests"
 	importCmdName = "import"
 	testCmdName   = "test"
-	curlCmdName   = "curl"
 	listCmdName   = "list"
+
+	curlSubCmdName = "curl"
+	harSubCmdName  = "har"
 )
 
 var (
@@ -96,7 +98,6 @@ Note:
 `,
 		bin, bin,
 	)
-
 }
 
 func getCommand() (cmd string, args []string) {
@@ -112,7 +113,7 @@ func getCommand() (cmd string, args []string) {
 	default:
 		fmt.Fprintf(os.Stderr, "Error: unknown command %q\n", cmd)
 		os.Exit(2)
-	case testCmdName, importCmdName, curlCmdName, listCmdName:
+	case testCmdName, importCmdName, listCmdName:
 		return strings.ToLower(cmd), args
 	}
 
@@ -183,14 +184,16 @@ func parseTestFlags(args []string) (c testConf, err error) {
 }
 
 type importConf struct {
-	Dir   string
-	Files []string
+	Dir     string
+	Files   []string
+	Verbose bool
 }
 
 func parseImportFlags(args []string) (c importConf, err error) {
 	flags := flag.NewFlagSet(getBinaryName()+" "+importCmdName, flag.ExitOnError)
 
 	flags.StringVar(&c.Dir, "out", ".", "output directory")
+	flags.BoolVar(&c.Verbose, "v", false, "verbose")
 	err = flags.Parse(args)
 	if err != nil {
 		return c, err
@@ -291,18 +294,24 @@ type curlConf struct {
 	Data    dataFlag
 
 	// backomp options
-	Name string
-	Dir  string
+	Name    string
+	Dir     string
+	Verbose bool
 }
 
 func parseCurlFlags(args []string) (c curlConf, err error) {
-	flags := flag.NewFlagSet(getBinaryName()+" "+curlCmdName, flag.ExitOnError)
+	if len(args) != 0 && len(args[0]) != 0 && args[0][0] != '-' {
+		args = append(args[1:], args[0])
+	}
+
+	flags := flag.NewFlagSet(getBinaryName()+" "+curlSubCmdName, flag.ExitOnError)
 
 	flags.StringVar(
 		&c.Name, "name", "",
 		"name to save the request/response under (without the _req.txt suffix)",
 	)
 	flags.StringVar(&c.Dir, "dir", "", "folder to save the request/response files in")
+	flags.BoolVar(&c.Verbose, "v", false, "verbose")
 
 	flags.StringVar(&c.Method, "X", "GET", "Specify request command to use")
 	flags.StringVar(&c.URL, "url", "", "URL to work with")
@@ -313,6 +322,9 @@ func parseCurlFlags(args []string) (c curlConf, err error) {
 	flags.Var(&c.Data, "data-ascii", "HTTP POST ASCII data")
 	flags.Var(&c.Data, "data-binary", "HTTP POST binary data")
 	flags.Var((*dataRawFlag)(&c.Data), "data-raw", "HTTP POST data, '@' allowed")
+
+	// Flags defined for compatibility purposes
+	flags.Bool("compressed", false, "placeholder for curl's --compressed option")
 
 	err = flags.Parse(args)
 	if err != nil {

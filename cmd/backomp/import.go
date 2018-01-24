@@ -1,142 +1,59 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"log"
-	"net/http"
-	"net/url"
 	"os"
-	"path/filepath"
 	"strings"
-
-	"github.com/yazgazan/backomp/har"
 )
 
 func importCmd(args []string) {
-	c, err := parseImportFlags(args)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
-	}
+	var cmd string
 
-	for _, fname := range c.Files {
-		err := importFromFile(fname, c.Dir)
-		if err != nil {
-			log.Fatal(err)
-		}
+	cmd, args = getImportSubCommand(args)
+	switch cmd {
+	default:
+		fmt.Fprintf(os.Stderr, "command %q not implemented yet\n", cmd)
+	case harSubCmdName:
+		importHarCmd(args)
+	case curlSubCmdName:
+		importCurlCmd(args)
 	}
 }
 
-func normalize(s string) string {
-	replacer := strings.NewReplacer("/", "-", "-", "--")
+func getImportSubCommand(args []string) (cmd string, cmdArgs []string) {
+	if len(args) == 0 {
+		printImportUsage()
+		os.Exit(2)
+	}
+	cmd = args[0]
+	cmdArgs = args[1:]
 
-	return replacer.Replace(s)
+	switch strings.ToLower(cmd) {
+	default:
+		fmt.Fprintf(os.Stderr, "Error: unknown import sub-command %q\n", cmd)
+		os.Exit(2)
+	case curlSubCmdName, harSubCmdName:
+		return strings.ToLower(cmd), cmdArgs
+	}
+
+	return "", nil
 }
 
-func reqFileName(name, dest string) (string, error) {
-	return _fileName(name, dest, "_req", 0)
-}
+func printImportUsage() {
+	bin := getBinaryName()
+	fmt.Fprintf(
+		os.Stderr,
+		`Usage: %s import [SUB-COMMAND] [OPTIONS]
 
-func respFileName(name, dest string) (string, error) {
-	return _fileName(name, dest, "_resp", 0)
-}
+SUB-COMMANDS:
+    har    import requests and responses from har files
+    curl   save a request/response pair by providing curl-like arguments
 
-func _fileName(name, dest, suffix string, i int) (string, error) {
-	var fname string
+Note:
+    "%s COMMAND -h" to get an overview of each command's flags
 
-	if i == 0 {
-		fname = filepath.Join(dest, name+suffix+".txt")
-	} else {
-		fname = filepath.Join(dest, name+fmt.Sprintf("%s%d.txt", suffix, i))
-	}
+`,
+		bin, bin,
+	)
 
-	_, err := os.Stat(fname)
-	if os.IsNotExist(err) {
-		return fname, nil
-	}
-	if err != nil {
-		return "", err
-	}
-
-	return _fileName(name, dest, suffix, i+1)
-}
-
-func importFromFile(fname, outDir string) (err error) {
-	var harObj har.HAR
-
-	f, err := os.Open(fname)
-	if err != nil {
-		return err
-	}
-	defer handleClose(&err, f)
-
-	err = json.NewDecoder(f).Decode(&harObj)
-	if err != nil {
-		return err
-	}
-
-	for _, entry := range harObj.Log.Entries {
-		u, err := url.Parse(entry.Request.URL)
-		if err != nil {
-			return err
-		}
-		req, err := entry.Request.ToHTTPRequest(u.Host, false)
-		if err != nil {
-			return err
-		}
-		resp, err := entry.Response.ToHTTPResponse(req)
-		if err != nil {
-			return err
-		}
-		name := normalize(u.Path)
-
-		err = importReq(outDir, name, req)
-		if err != nil {
-			return err
-		}
-
-		err = importResp(outDir, name, resp)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func importReq(outDir, name string, req *http.Request) (err error) {
-	fname, err := reqFileName(name, outDir)
-	if err != nil {
-		return err
-	}
-	outF, err := os.Create(fname)
-	if err != nil {
-		return err
-	}
-	defer handleClose(&err, outF)
-
-	return req.Write(outF)
-}
-
-func importResp(outDir, name string, resp *http.Response) (err error) {
-	fname, err := respFileName(name, outDir)
-	if err != nil {
-		return err
-	}
-	outF, err := os.Create(fname)
-	if err != nil {
-		return err
-	}
-	defer handleClose(&err, outF)
-
-	return resp.Write(outF)
-}
-
-func handleClose(err *error, closer io.Closer) {
-	errClose := closer.Close()
-	if *err == nil {
-		*err = errClose
-	}
 }

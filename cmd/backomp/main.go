@@ -15,8 +15,6 @@ func main() {
 		testCmd(args)
 	case importCmdName:
 		importCmd(args)
-	case curlCmdName:
-		curlCmd(args)
 	case listCmdName:
 		listCmd(args)
 	}
