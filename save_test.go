@@ -113,7 +113,7 @@ func TestSaveResponseFail(t *testing.T) {
 		t.Errorf("SaveResponse(..., %q, ...): expected error, got nil", "foo.txt")
 	}
 
-	// Saving to a non-existant folder should result in an error
+	// Saving to a non-existent folder should result in an error
 	testFile = filepath.Join(os.TempDir(), "foo_req.txt")
 	err = SaveResponse("does_not_exist", testFile, &http.Response{})
 	if err == nil {
