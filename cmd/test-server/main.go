@@ -39,22 +39,33 @@ func (v *version) Set(s string) error {
 	return nil
 }
 
-// V0 is the baseline version of this test server
+// ResponseV0 is the baseline version of this test server
+type ResponseV0 struct {
+	Results []V0
+}
+
 type V0 struct {
 	Foo string
 	Bar int
 }
 
-// V1 is a backward-compatible version of this test server
+// ResponseV1 is a backward-compatible version of this test server
+type ResponseV1 struct {
+	Results []V1
+}
+
 type V1 struct {
 	Foo  string
 	Bar  int
 	Buzz float64
 }
 
-// V2 is a backward-compatibility breaking version of this test server
+// ResponseV2 is a backward-compatibility breaking version of this test server
+type ResponseV2 struct {
+	Results []V2
+}
+
 type V2 struct {
-	Foo  string
 	Bar  []int
 	Buzz float64
 }
@@ -83,9 +94,17 @@ func v0Handler(w http.ResponseWriter, req *http.Request) {
 		}
 	}()
 
-	err := json.NewEncoder(w).Encode(V0{
-		Foo: "bar",
-		Bar: 42,
+	err := json.NewEncoder(w).Encode(ResponseV0{
+		Results: []V0{
+			V0{
+				Foo: "bar",
+				Bar: 42,
+			},
+			V0{
+				Foo: "hello world",
+				Bar: 11,
+			},
+		},
 	})
 
 	if err != nil {
@@ -103,14 +122,18 @@ func v1Handler(w http.ResponseWriter, req *http.Request) {
 		}
 	}()
 
-	err := json.NewEncoder(w).Encode(V1{
-		Foo:  "hello world",
-		Bar:  23,
-		Buzz: 1.2,
+	err := json.NewEncoder(w).Encode(ResponseV1{
+		Results: []V1{
+			V1{
+				Foo:  "hello world",
+				Bar:  23,
+				Buzz: 1.2,
+			},
+		},
 	})
 
 	if err != nil {
-		log.Print("error encoding v0 response:", err)
+		log.Print("error encoding v1 response:", err)
 	}
 }
 
@@ -124,15 +147,30 @@ func v2Handler(w http.ResponseWriter, req *http.Request) {
 		}
 	}()
 
-	err := json.NewEncoder(w).Encode(V2{
-		Foo:  "bar",
-		Bar:  []int{1, 2, 3},
-		Buzz: 2.1,
+	err := json.NewEncoder(w).Encode(ResponseV2{
+		Results: []V2{
+			V2{
+				Bar:  []int{1, 2, 3},
+				Buzz: 2.1,
+			},
+			V2{
+				Bar:  []int{4, 5},
+				Buzz: 6.4,
+			},
+			V2{
+				Bar:  []int{6},
+				Buzz: 0.02,
+			},
+		},
 	})
 
 	if err != nil {
-		log.Print("error encoding v0 response:", err)
+		log.Print("error encoding v2 response:", err)
 	}
+}
+
+func notFoundHandler(w http.ResponseWriter, _ *http.Request) {
+	w.WriteHeader(200)
 }
 
 func main() {
@@ -167,6 +205,7 @@ func main() {
 		mux.HandleFunc("/api", v1Handler)
 	case v2:
 		mux.HandleFunc("/api", v2Handler)
+		mux.HandleFunc("/not-found", notFoundHandler)
 	}
 
 	log.Printf("running version %s of the server", v)

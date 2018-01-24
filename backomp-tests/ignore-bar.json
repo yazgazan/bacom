@@ -15,7 +15,10 @@
         "Path": "/api",
         "JSON": {
             "Ignore": [
-                ".Bar"
+                ".Results[].Bar"
+            ],
+            "IgnoreMissing": [
+                ".Results[].Foo"
             ]
         },
         "Headers": {

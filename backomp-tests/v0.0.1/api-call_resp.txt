@@ -1,6 +1,6 @@
 HTTP/1.1 200 OK
-Content-Length: 23
+Content-Length: 68
 Content-Type: application/json
-Date: Mon, 22 Jan 2018 12:41:01 GMT
+Date: Tue, 23 Jan 2018 13:00:12 GMT
 
-{"Foo":"bar","Bar":42}
+{"Results":[{"Foo":"bar","Bar":42},{"Foo":"hello world","Bar":11}]}
