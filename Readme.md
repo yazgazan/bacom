@@ -1,6 +1,8 @@
 # Bacom
 
-Pronounced like bacon, but for compatibility
+Pronounced like bacon, but for compatibility.
+
+Bacom will help you test JSON apis for backward-compatibility breaking changes.
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/yazgazan/bacom)](https://goreportcard.com/report/github.com/yazgazan/bacom)
 [![GoDoc](https://godoc.org/github.com/yazgazan/bacom?status.svg)](https://godoc.org/github.com/yazgazan/bacom)
