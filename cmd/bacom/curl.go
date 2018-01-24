@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/yazgazan/backomp"
+	"github.com/yazgazan/bacom"
 )
 
 func closeOrExit(c io.Closer) {
@@ -63,7 +63,7 @@ func importCurlCmd(args []string) {
 		fmt.Fprintf(os.Stderr, "imported %q\n", reqFile)
 	}
 
-	respFile, err := backomp.GetResponseFilename(reqFile)
+	respFile, err := bacom.GetResponseFilename(reqFile)
 	logAndExitOnError(err)
 	f, err = os.Create(respFile)
 	logAndExitOnError(err)

@@ -53,7 +53,7 @@ rm -rf build dist && mkdir -p build dist
 GOARM=6 gox -ldflags "-s -w -X main.Version=${LATEST_TAG}" \
     -rebuild \
     -output "build/{{.Dir}}-${LATEST_TAG}-{{.OS}}-{{.Arch}}/${NAME}" \
-	./cmd/backomp
+	./cmd/bacom
 
 # Archive
 HERE=$(pwd)

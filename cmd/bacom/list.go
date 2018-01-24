@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/yazgazan/backomp"
+	"github.com/yazgazan/bacom"
 )
 
 func listCmd(args []string) {
@@ -14,7 +14,7 @@ func listCmd(args []string) {
 		os.Exit(1)
 	}
 
-	versions, err := backomp.FindVersions(c.Dir, false, c.Constraints)
+	versions, err := bacom.FindVersions(c.Dir, false, c.Constraints)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
 		os.Exit(1)
@@ -32,7 +32,7 @@ func listCmd(args []string) {
 func listTests(dirname string, long bool) error {
 	fmt.Printf("%s:\n", dirname)
 
-	reqFiles, err := backomp.GetRequestsFiles(dirname)
+	reqFiles, err := bacom.GetRequestsFiles(dirname)
 	if err != nil {
 		return err
 	}

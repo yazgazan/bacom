@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	defaultDir    = "backomp-tests"
+	defaultDir    = "bacom-tests"
 	importCmdName = "import"
 	testCmdName   = "test"
 	listCmdName   = "list"
@@ -121,7 +121,7 @@ func getCommand() (cmd string, args []string) {
 
 func getBinaryName() string {
 	if len(os.Args) == 0 {
-		return "backomp"
+		return "bacom"
 	}
 
 	return os.Args[0]
@@ -292,7 +292,7 @@ type curlConf struct {
 	Headers headers
 	Data    dataFlag
 
-	// backomp options
+	// bacom options
 	Name    string
 	Dir     string
 	Verbose bool

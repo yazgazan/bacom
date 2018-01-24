@@ -23,11 +23,12 @@
 tests/*
 cover.html
 
-backomp
+bacom
 preprocess-example
 test-server
-!cmd/backomp
+!cmd/bacom
 !cmd/preprocess-example
 !cmd/test-server
 .idea
+build
 dist

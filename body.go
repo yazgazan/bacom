@@ -1,4 +1,4 @@
-package backomp
+package bacom
 
 import (
 	"github.com/yazgazan/jaydiff/diff"

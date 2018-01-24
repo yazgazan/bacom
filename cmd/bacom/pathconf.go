@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/imdario/mergo"
-	"github.com/yazgazan/backomp"
+	"github.com/yazgazan/bacom"
 )
 
 type pathConf struct {
@@ -26,7 +26,7 @@ func getPathConf(conf []pathConf, path string) pathConf {
 	var pConf pathConf
 
 	for _, c := range conf {
-		ok, err := backomp.MatchPath(c.Path, path)
+		ok, err := bacom.MatchPath(c.Path, path)
 		if err != nil || !ok {
 			continue
 		}

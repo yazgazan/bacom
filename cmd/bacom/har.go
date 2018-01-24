@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/yazgazan/backomp/har"
+	"github.com/yazgazan/bacom/har"
 )
 
 func importHarCmd(args []string) {

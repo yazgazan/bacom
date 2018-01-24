@@ -13,7 +13,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
-	"github.com/yazgazan/backomp"
+	"github.com/yazgazan/bacom"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -24,7 +24,7 @@ func testCmd(args []string) {
 		os.Exit(1)
 	}
 
-	versions, err := backomp.FindVersions(c.Dir, c.Verbose, c.Constraints)
+	versions, err := bacom.FindVersions(c.Dir, c.Verbose, c.Constraints)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
 		os.Exit(1)
@@ -63,7 +63,7 @@ func printPass(pass, quiet bool, fname string) {
 }
 
 func runTestsForVersion(conf testConf, dirname string) (bool, error) {
-	reqFiles, err := backomp.GetRequestsFiles(dirname)
+	reqFiles, err := bacom.GetRequestsFiles(dirname)
 	if err != nil {
 		return false, errors.Wrapf(err, "looking for requests files in %q", dirname)
 	}
@@ -109,7 +109,7 @@ func compareResponses(
 		return nil, errors.Wrapf(err, "reading base response body")
 	}
 
-	results, err = backomp.CompareHeaders(
+	results, err = bacom.CompareHeaders(
 		pConf.Headers.Ignore,
 		pConf.Headers.IgnoreContent,
 		baseResp.Header,
@@ -124,7 +124,7 @@ func compareResponses(
 		baseResp.Status, targetResp.Status,
 	), results...)
 
-	bodyResults, err := backomp.Compare(
+	bodyResults, err := bacom.Compare(
 		pConf.JSON.Ignore,
 		pConf.JSON.IgnoreMissing,
 		pConf.JSON.IgnoreNull,
@@ -172,12 +172,12 @@ func runTest(conf testConf, fname string) (pass bool, err error) {
 		}
 		saveResp.Body = ioutil.NopCloser(b)
 		errg.Go(func() error {
-			err = backomp.SaveRequest(filepath.Join(conf.Dir, conf.Save), fname)
+			err = bacom.SaveRequest(filepath.Join(conf.Dir, conf.Save), fname)
 			if err != nil {
 				return err
 			}
 
-			err = backomp.SaveResponse(filepath.Join(conf.Dir, conf.Save), fname, saveResp)
+			err = bacom.SaveResponse(filepath.Join(conf.Dir, conf.Save), fname, saveResp)
 			if err != nil {
 				return errors.Wrapf(err, "saving request/response to %s for %q", conf.Save, fname)
 			}
@@ -277,7 +277,7 @@ func getBaseResponse(req *http.Request, reqFname string, targetConf targetConf) 
 		return getTargetResponseFromHost(req, targetConf.Host, targetConf.UseHTTPS)
 	}
 
-	return backomp.ReadResponse(req, reqFname)
+	return bacom.ReadResponse(req, reqFname)
 }
 
 func getTargetResponseFromHost(req *http.Request, host string, useHTTPS bool) (*http.Response, error) {

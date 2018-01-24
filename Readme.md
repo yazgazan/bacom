@@ -1,26 +1,28 @@
-# BaComp-tester
+# Bacom
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/yazgazan/backomp)](https://goreportcard.com/report/github.com/yazgazan/backomp)
-[![GoDoc](https://godoc.org/github.com/yazgazan/backomp?status.svg)](https://godoc.org/github.com/yazgazan/backomp)
-[![Build Status](https://travis-ci.org/yazgazan/backomp.svg?branch=master)](https://travis-ci.org/yazgazan/backomp)
-[![Coverage Status](https://coveralls.io/repos/github/yazgazan/backomp/badge.svg?branch=master)](https://coveralls.io/github/yazgazan/backomp?branch=master)
+Pronounced like bacon, but for compatibility
 
-## Installing backomp
+[![Go Report Card](https://goreportcard.com/badge/github.com/yazgazan/bacom)](https://goreportcard.com/report/github.com/yazgazan/bacom)
+[![GoDoc](https://godoc.org/github.com/yazgazan/bacom?status.svg)](https://godoc.org/github.com/yazgazan/bacom)
+[![Build Status](https://travis-ci.org/yazgazan/bacom.svg?branch=master)](https://travis-ci.org/yazgazan/bacom)
+[![Coverage Status](https://coveralls.io/repos/github/yazgazan/bacom/badge.svg?branch=master)](https://coveralls.io/github/yazgazan/bacom?branch=master)
+
+## Installing bacom
 
 ### Downloading the compiled binary
 
-- Download the latest version of the binary: [releases](https://github.com/yazgazan/backomp/releases)
-- extract the archive and place the `backomp` binary in your `$PATH`
+- Download the latest version of the binary: [releases](https://github.com/yazgazan/bacom/releases)
+- extract the archive and place the `bacom` binary in your `$PATH`
 
 ### From source
 
 - Have go 1.8 or greater installed: [golang.org](https://golang.org/doc/install)
-- run `go get -u github.com/yazgazan/backomp/cmd/backomp`
+- run `go get -u github.com/yazgazan/bacom/cmd/bacom`
 
 ## Usage
 
 ```
-Usage: backomp [COMMAND] [OPTIONS]
+Usage: bacom [COMMAND] [OPTIONS]
 
 COMMANDS:
     test    run existing tests
@@ -28,7 +30,7 @@ COMMANDS:
     list    lists tests information
 
 
-Options for backomp test:
+Options for bacom test:
     -base-host string
         host for the base to compare to (leave empty to use saved tests versions)
     -base-use-https
@@ -36,7 +38,7 @@ Options for backomp test:
     -conf string
         configuration file (default "backcomp.json")
     -dir string
-        directory containing the tests (default "backomp-tests")
+        directory containing the tests (default "bacom-tests")
     -q	Reduce standard output
     -save string
         save requests to target to the specified version
@@ -48,18 +50,18 @@ Options for backomp test:
     -version value
         test version (default *)
 
-Usage: backomp import  [SUB-COMMAND] [OPTIONS]
+Usage: bacom import  [SUB-COMMAND] [OPTIONS]
 
 SUB-COMMANDS:
     har    import requests and responses from har files
     curl   save a request/response pair by providing curl-like arguments
 
-Usage of backomp import har:
+Usage of bacom import har:
     -out string
         output directory (default ".")
     -v	verbose
 
-Usage of backomp import curl:
+Usage of bacom import curl:
     -H value
         Pass custom header to server (can be repeated)
     -X string
@@ -84,9 +86,9 @@ Usage of backomp import curl:
         URL to work with
     -v	verbose
 
-Usage of backomp list:
+Usage of bacom list:
     -dir string
-        folder containing the tests (default "backomp-tests")
+        folder containing the tests (default "bacom-tests")
     -l	prints detailed listing
     -version value
         constraint listing to these tests (default *)
@@ -95,20 +97,20 @@ Usage of backomp list:
 
 ## Examples
 
-This command will run the tests located in the default `backomp-tests` folder, where the sub-directory matches the version constraint `<=1.x`.
+This command will run the tests located in the default `bacom-tests` folder, where the sub-directory matches the version constraint `<=1.x`.
 
 ```bash
-./backomp test -target-host=localhost:1235 -version="<=1.x"
+./bacom test -target-host=localhost:1235 -version="<=1.x"
 ```
 
 Alternatively, you can run the tests against a live/test endpoint instead of the saved responses:
 
 ```bash
-./backomp test -target-host=localhost:1235 -base-host=example.org -version="<=1.x"
+./bacom test -target-host=localhost:1235 -base-host=example.org -version="<=1.x"
 ```
 
 A configuration file can be used to specify path-based rules:
 
 ```bash
-./backomp test -target-host=localhost:1235 -version="<=1.x" -conf=backomp-tests/ignore-bar.json
+./bacom test -target-host=localhost:1235 -version="<=1.x" -conf=bacom-tests/ignore-bar.json
 ```
