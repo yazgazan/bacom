@@ -89,7 +89,6 @@ func printGlobalUsage() {
 COMMANDS:
     test    run existing tests
     import  import requests from HAR files
-    curl    save a request/response pair by providing curl-like arguments
     list    lists tests information
 
 Note:
