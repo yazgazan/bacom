@@ -158,3 +158,54 @@ func TestSaveResponseFail(t *testing.T) {
 		t.Errorf("SaveResponse(%q, %q, ...): expected error, got nil", testDir, testFile)
 	}
 }
+
+func TestSaveRequest(t *testing.T) {
+	fname := filepath.Join(os.TempDir(), "foo_req.txt")
+	testDstDir := filepath.Join(os.TempDir(), "testDst")
+
+	// SaveRequest should fail if the source file doesn't exist
+	err := SaveRequest(testDstDir, fname)
+	if err == nil {
+		t.Errorf("SaveRequest(%q, %q): expected error, got nil", testDstDir, fname)
+	}
+
+	f, err := os.Create(fname)
+	if err != nil {
+		t.Fatalf("failed to create test file %q: %s", fname, err)
+	}
+	defer func(fname string) {
+		err = os.Remove(fname)
+		if err != nil {
+			t.Errorf("failed to remove test file %q: %s", fname, err)
+		}
+	}(fname)
+	err = f.Close()
+	if err != nil {
+		t.Errorf("failed to close test file %q: %s", fname, err)
+		return
+	}
+
+	// SaveRequest should fail if the destination folder doesn't exist
+	folderNotExist := filepath.Join(os.TempDir(), "DoesNotExist")
+	err = SaveRequest(folderNotExist, fname)
+	if err == nil {
+		t.Errorf("SaveRequest(%q, %q): expected error, got nil", folderNotExist, fname)
+	}
+
+	err = os.Mkdir(testDstDir, 0700)
+	if err != nil {
+		t.Errorf("failed to create test dst dir: %s", err)
+		return
+	}
+	defer func() {
+		err = os.RemoveAll(testDstDir)
+		if err != nil {
+			t.Logf("failed to remove test dst dir: %s", err)
+		}
+	}()
+
+	err = SaveRequest(testDstDir, fname)
+	if err != nil {
+		t.Errorf("SaveRequest(%q, %q): unexpected error: %s", testDstDir, fname, err)
+	}
+}
