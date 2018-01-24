@@ -99,11 +99,11 @@ func v0Handler(w http.ResponseWriter, req *http.Request) {
 
 	err := json.NewEncoder(w).Encode(ResponseV0{
 		Results: []V0{
-			V0{
+			{
 				Foo: "bar",
 				Bar: 42,
 			},
-			V0{
+			{
 				Foo: "hello world",
 				Bar: 11,
 			},
@@ -127,7 +127,7 @@ func v1Handler(w http.ResponseWriter, req *http.Request) {
 
 	err := json.NewEncoder(w).Encode(ResponseV1{
 		Results: []V1{
-			V1{
+			{
 				Foo:  "hello world",
 				Bar:  23,
 				Buzz: 1.2,
@@ -152,15 +152,15 @@ func v2Handler(w http.ResponseWriter, req *http.Request) {
 
 	err := json.NewEncoder(w).Encode(ResponseV2{
 		Results: []V2{
-			V2{
+			{
 				Bar:  []int{1, 2, 3},
 				Buzz: 2.1,
 			},
-			V2{
+			{
 				Bar:  []int{4, 5},
 				Buzz: 6.4,
 			},
-			V2{
+			{
 				Bar:  []int{6},
 				Buzz: 0.02,
 			},
