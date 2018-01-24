@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-// SaveResponse generates the _req.txt file corresponding to provided filename
+// SaveRequest generates the _req.txt file corresponding to provided filename
 func SaveRequest(dir, fname string) error {
 	reqName := filepath.Base(fname)
 

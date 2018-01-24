@@ -44,6 +44,7 @@ type ResponseV0 struct {
 	Results []V0
 }
 
+// V0 is part of the ResponseV0 structure
 type V0 struct {
 	Foo string
 	Bar int
@@ -54,6 +55,7 @@ type ResponseV1 struct {
 	Results []V1
 }
 
+// V1 is part of the ResponseV1 structure
 type V1 struct {
 	Foo  string
 	Bar  int
@@ -65,6 +67,7 @@ type ResponseV2 struct {
 	Results []V2
 }
 
+// V2 is part of the ResponseV2 structure
 type V2 struct {
 	Bar  []int
 	Buzz float64

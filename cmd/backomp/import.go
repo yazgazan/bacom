@@ -12,7 +12,10 @@ func importCmd(args []string) {
 	cmd, args = getImportSubCommand(args)
 	switch cmd {
 	default:
-		fmt.Fprintf(os.Stderr, "command %q not implemented yet\n", cmd)
+		_, err := fmt.Fprintf(os.Stderr, "command %q not implemented yet\n", cmd)
+		if err != nil {
+			panic(err)
+		}
 	case harSubCmdName:
 		importHarCmd(args)
 	case curlSubCmdName:
