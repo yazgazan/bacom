@@ -23,96 +23,87 @@ Bacom will help you test JSON apis for backward-compatibility breaking changes.
 
 ## Usage
 
-```
-Usage: bacom [COMMAND] [OPTIONS]
+Bacom works by comparing a live (locale or testing) version against one or more "known" versions of a service.
+These known versions are stored in a `bacom-tests` folder as request/responses pairs.
 
-COMMANDS:
-    test    run existing tests
-    import  import requests from HAR files
-    list    lists tests information
-
-
-Options for bacom test:
-    -base-host string
-        host for the base to compare to (leave empty to use saved tests versions)
-    -base-use-https
-        use https for requests to the base host
-    -conf string
-        configuration file (default "backcomp.json")
-    -dir string
-        directory containing the tests (default "bacom-tests")
-    -q	Reduce standard output
-    -save string
-        save requests to target to the specified version
-    -target-host string
-        host for the target to compare (can include port) (default "localhost")
-    -target-use-https
-        use httpsfor the requests to the target host
-    -v	print reasons
-    -version value
-        test version (default *)
-
-Usage: bacom import  [SUB-COMMAND] [OPTIONS]
-
-SUB-COMMANDS:
-    har    import requests and responses from har files
-    curl   save a request/response pair by providing curl-like arguments
-
-Usage of bacom import har:
-    -out string
-        output directory (default ".")
-    -v	verbose
-
-Usage of bacom import curl:
-    -H value
-        Pass custom header to server (can be repeated)
-    -X string
-        Specify request command to use (default "GET")
-    -compressed
-        placeholder for curl's --compressed option
-    -d value
-        HTTP POST data
-    -data value
-        HTTP POST data
-    -data-ascii value
-        HTTP POST ASCII data
-    -data-binary value
-        HTTP POST binary data
-    -data-raw value
-        HTTP POST data, '@' allowed
-    -dir string
-        folder to save the request/response files in
-    -name string
-        name to save the request/response under (without the _req.txt suffix)
-    -url string
-        URL to work with
-    -v	verbose
-
-Usage of bacom list:
-    -dir string
-        folder containing the tests (default "bacom-tests")
-    -l	prints detailed listing
-    -version value
-        constraint listing to these tests (default *)
-
+```text
+bacom-tests/
+├── config.json
+├── v0.0.1
+│   ├── api-call_req.txt
+│   ├── api-call_resp.txt
+│   ├── api-call2_req.txt
+│   ├── api-call2_resp.txt
+│   ├── api-call3_req.txt
+│   └── api-call3_resp.txt
+└── v1.0.0
+│   ├── api-call_req.txt
+│   ├── api-call_resp.txt
+│   ├── api-call2_req.txt
+│   ├── api-call2_resp.txt
+│   ├── api-call3_req.txt
+│   ├── api-call3_resp.txt
+│   ├── api-call4_req.txt
+│   └── api-call4_resp.txt
 ```
 
-## Examples
+### Importing requests and responses
 
-This command will run the tests located in the default `bacom-tests` folder, where the sub-directory matches the version constraint `<=1.x`.
+Requests and responses can be imported from two formats: har and curl.
+
+The HAR format can be used to import requests from google-chrome and firefox,
+by exporting one or all requests/responses from the network tab.
+Important to note is that the response bodies won't be present when exporting all requests from google-chrome
+(these can be generated later via the `bacom test` command).
+
+Importing from HAR files:
 
 ```bash
-./bacom test -target-host=localhost:1235 -version="<=1.x"
+bacom import har -out=bacom-tests/v0.0.1 har_files/*.har
 ```
 
-Alternatively, you can run the tests against a live/test endpoint instead of the saved responses:
+The curl import format allows you to import a request using the same command-line options as `curl`:
 
 ```bash
-./bacom test -target-host=localhost:1235 -base-host=example.org -version="<=1.x"
+bacom import curl -X POST -H "Content-Type: application/json" -d '{"foo": ["bar"]}' "http://localhost:8080/api/endpoint" -dir=bacom-tests/v0.0.1 -name="post-api-endpoint"
 ```
 
-A configuration file can be used to specify path-based rules:
+The curl import can be used to import requests from many sources: google-chrome, firefox, postman, etc.
+
+### Testing a new version
+
+When testing a new version, bacom will replay the requests from older versions against a live endpoint.
+A diff will be generated for the request's status code, headers and JSON body.
+
+When comparing the bodies, two kind of errors will be reported:
+
+- Invalid type: the type of a JSON key changed in the new version.
+- Missing key: a key is absent in the new version.
+
+Differences in content are not reported.
+
+Testing against versions up (but excluding) `v2.0.0`:
 
 ```bash
-./bacom test -target-host=localhost:1235 -version="<=1.x" -conf=bacom-tests/ignore-bar.json
+bacom test -version="<=v1.x" -target-host=localhost:8080
 ```
+
+A configuration file can be used to specify headers and JSON paths to ignore in the diff:
+
+```bash
+bacom test -conf=bacom-ignore.json -version="<=v1.x" -target-host=localhost:8080
+```
+
+### Saving responses for a new version
+
+Once a new version is fixed (considered correct), requests and responses can be generated based on the old versions requests:
+
+```bash
+bacom test -version="<=v1.x" -target-host=localhost:8080 -save=v2.0.0
+```
+
+## Planned features
+
+- [ ] Supporting HTTP trailers
+- [ ] Supporting more import formats (Postman and Insomnia)
+- [ ] Allow the use of pre-processing commands for requests (i.e: setting authentication headers)
