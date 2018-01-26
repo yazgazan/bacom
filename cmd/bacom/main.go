@@ -16,6 +16,7 @@ func main() {
 	switch cmd {
 	default:
 		fmt.Fprintf(os.Stderr, "command %q not implemented yet\n", cmd)
+		os.Exit(1)
 	case testCmdName:
 		testCmd(args)
 	case importCmdName:
