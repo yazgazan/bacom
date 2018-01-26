@@ -172,12 +172,14 @@ func runTest(conf testConf, fname string) (pass bool, err error) {
 		}
 		saveResp.Body = ioutil.NopCloser(b)
 		errg.Go(func() error {
-			err = bacom.SaveRequest(filepath.Join(conf.Dir, conf.Save), fname)
+			saver := bacom.NewSaver(filepath.Join(conf.Dir, conf.Save), fname)
+
+			err = saver.SaveRequest()
 			if err != nil {
 				return err
 			}
 
-			err = bacom.SaveResponse(filepath.Join(conf.Dir, conf.Save), fname, saveResp)
+			err = saver.SaveResponse(saveResp)
 			if err != nil {
 				return errors.Wrapf(err, "saving request/response to %s for %q", conf.Save, fname)
 			}

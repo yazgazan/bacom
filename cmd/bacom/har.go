@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"strings"
 
+	"github.com/yazgazan/bacom"
 	"github.com/yazgazan/bacom/har"
 )
 
@@ -33,34 +33,6 @@ func normalize(s string) string {
 	replacer := strings.NewReplacer("/", "-", "-", "--")
 
 	return replacer.Replace(s)
-}
-
-func reqFileName(name, dest string) (string, error) {
-	return _fileName(name, dest, "_req", 0)
-}
-
-func respFileName(name, dest string) (string, error) {
-	return _fileName(name, dest, "_resp", 0)
-}
-
-func _fileName(name, dest, suffix string, i int) (string, error) {
-	var fname string
-
-	if i == 0 {
-		fname = filepath.Join(dest, name+suffix+".txt")
-	} else {
-		fname = filepath.Join(dest, name+fmt.Sprintf("%s%d.txt", suffix, i))
-	}
-
-	_, err := os.Stat(fname)
-	if os.IsNotExist(err) {
-		return fname, nil
-	}
-	if err != nil {
-		return "", err
-	}
-
-	return _fileName(name, dest, suffix, i+1)
 }
 
 func importFromFile(fname, outDir string, verbose bool) (err error) {
@@ -92,12 +64,12 @@ func importFromFile(fname, outDir string, verbose bool) (err error) {
 		}
 		name := normalize(u.Path)
 
-		err = importReq(verbose, outDir, name, req)
+		reqFname, err := importReq(verbose, outDir, name, req)
 		if err != nil {
 			return err
 		}
 
-		err = importResp(verbose, outDir, name, resp)
+		err = importResp(verbose, reqFname, outDir, name, resp)
 		if err != nil {
 			return err
 		}
@@ -106,30 +78,27 @@ func importFromFile(fname, outDir string, verbose bool) (err error) {
 	return nil
 }
 
-func importReq(verbose bool, outDir, name string, req *http.Request) (err error) {
-	fname, err := reqFileName(name, outDir)
-	if err != nil {
-		return err
-	}
+func importReq(verbose bool, outDir, name string, req *http.Request) (fname string, err error) {
+	fname = bacom.ReqFileName(name, outDir)
 	outF, err := os.Create(fname)
 	if err != nil {
-		return err
+		return fname, err
 	}
 	defer handleClose(&err, outF)
 
 	err = req.Write(outF)
 	if err != nil {
-		return err
+		return fname, err
 	}
 
 	if verbose {
 		fmt.Fprintf(os.Stderr, "imported %q\n", fname)
 	}
-	return nil
+	return fname, nil
 }
 
-func importResp(verbose bool, outDir, name string, resp *http.Response) (err error) {
-	fname, err := respFileName(name, outDir)
+func importResp(verbose bool, reqFname, outDir, name string, resp *http.Response) (err error) {
+	fname, err := bacom.GetResponseFilename(reqFname)
 	if err != nil {
 		return err
 	}

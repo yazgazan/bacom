@@ -1,6 +1,7 @@
 package bacom
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -10,7 +11,7 @@ import (
 )
 
 var (
-	// ErrReqInvalidName is returned by GetResponseFilename when the filename
+	// ErrReqInvalidName is returned when a request filename
 	// does not follow the _req[0-9]*.txt pattern
 	ErrReqInvalidName = errors.New("invalid filename for request")
 )
@@ -76,4 +77,35 @@ func GetResponseFilename(reqFname string) (string, error) {
 	}
 
 	return reqFname[0:idx] + "_resp" + strconv.Itoa(n) + ".txt", nil
+}
+
+func nameFromReqFileName(fname string) (string, error) {
+	if !isRequestFilename(fname) {
+		return fname, ErrReqInvalidName
+	}
+	idx := strings.Index(fname, "_req")
+
+	return fname[:idx], nil
+}
+
+// ReqFileName finds the first appropriate request filename that doesn't translate to an existing file on disk
+func ReqFileName(name, dir string) string {
+	return _fileName(name, dir, "_req", 0)
+}
+
+func _fileName(name, dir, suffix string, i int) string {
+	var fname string
+
+	if i == 0 {
+		fname = filepath.Join(dir, name+suffix+".txt")
+	} else {
+		fname = filepath.Join(dir, name+fmt.Sprintf("%s%d.txt", suffix, i))
+	}
+
+	_, err := os.Stat(fname)
+	if err == nil {
+		return _fileName(name, dir, suffix, i+1)
+	}
+
+	return fname
 }
