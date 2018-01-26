@@ -150,7 +150,7 @@ func compareReaders(lhs, rhs io.Reader) (bool, error) {
 }
 
 func minInt(vals ...int) int {
-	min := math.MaxInt64
+	min := math.MaxInt32
 
 	for _, v := range vals {
 		if v < min {

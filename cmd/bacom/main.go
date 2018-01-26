@@ -5,6 +5,10 @@ import (
 	"os"
 )
 
+var (
+	Version = "dev"
+)
+
 func main() {
 	cmd, args := getCommand()
 
@@ -17,5 +21,11 @@ func main() {
 		importCmd(args)
 	case listCmdName:
 		listCmd(args)
+	case versionCmdName:
+		versionCmd()
 	}
+}
+
+func versionCmd() {
+	fmt.Println(Version)
 }

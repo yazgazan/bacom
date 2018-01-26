@@ -16,10 +16,11 @@ import (
 )
 
 const (
-	defaultDir    = "bacom-tests"
-	importCmdName = "import"
-	testCmdName   = "test"
-	listCmdName   = "list"
+	defaultDir     = "bacom-tests"
+	importCmdName  = "import"
+	testCmdName    = "test"
+	listCmdName    = "list"
+	versionCmdName = "version"
 
 	curlSubCmdName = "curl"
 	harSubCmdName  = "har"
@@ -90,6 +91,7 @@ COMMANDS:
     test    run existing tests
     import  import requests from HAR files
     list    lists tests information
+    version print version information
 
 Note:
     "%s COMMAND -h" to get an overview of each command's flags
@@ -112,7 +114,7 @@ func getCommand() (cmd string, args []string) {
 	default:
 		fmt.Fprintf(os.Stderr, "Error: unknown command %q\n", cmd)
 		os.Exit(2)
-	case testCmdName, importCmdName, listCmdName:
+	case testCmdName, importCmdName, listCmdName, versionCmdName:
 		return strings.ToLower(cmd), args
 	}
 
