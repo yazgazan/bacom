@@ -14,31 +14,52 @@ import (
 	"github.com/pkg/errors"
 )
 
+func createTestFolder(t *testing.T, dirname string) (remover func(), err error) {
+	err = os.MkdirAll(dirname, 0700)
+	if err != nil {
+		return nil, err
+	}
+	return func() {
+		err = os.RemoveAll(dirname)
+		if err != nil {
+			t.Errorf("failed to remove test dir %q: %s", dirname, err)
+		}
+	}, nil
+}
+
+func createTestRequest(fname string, body []byte) error {
+	req, err := http.NewRequest("POST", "http://example.org", bytes.NewBuffer(body))
+	if err != nil {
+		return errors.Wrap(err, "failed to create test request")
+	}
+	f, err := os.Create(fname)
+	if err != nil {
+		return errors.Wrapf(err, "failed to open test src file %q", fname)
+	}
+	defer f.Close()
+	err = req.Write(f)
+	if err != nil {
+		return errors.Wrapf(err, "failed to write test request to %q", fname)
+	}
+
+	return nil
+}
+
 func TestSaveRequest(t *testing.T) {
 	testDirV0 := filepath.Join(os.TempDir(), "testDirV0")
-	err := os.MkdirAll(testDirV0, 0700)
+	removeTestDirV0, err := createTestFolder(t, testDirV0)
 	if err != nil {
 		t.Fatalf("failed to create test dir %q: %s", testDirV0, err)
 	}
-	defer func() {
-		err = os.RemoveAll(testDirV0)
-		if err != nil {
-			t.Errorf("failed to remove test dir %q: %s", testDirV0, err)
-		}
-	}()
+	defer removeTestDirV0()
 
 	testDirV1 := filepath.Join(os.TempDir(), "testDirV1")
-	err = os.MkdirAll(testDirV1, 0700)
+	removeTestDirV1, err := createTestFolder(t, testDirV1)
 	if err != nil {
 		t.Errorf("failed to create test dir %q: %s", testDirV1, err)
 		return
 	}
-	defer func() {
-		err = os.RemoveAll(testDirV1)
-		if err != nil {
-			t.Errorf("failed to remove test dir %q: %s", testDirV1, err)
-		}
-	}()
+	defer removeTestDirV1()
 
 	testSrc := filepath.Join(testDirV0, "foo_req.txt")
 	saver := NewSaver(testDirV1, testSrc)
@@ -49,30 +70,7 @@ func TestSaveRequest(t *testing.T) {
 		t.Errorf("saving from a non-existent file should fail.")
 	}
 
-	req, err := http.NewRequest("POST", "http://example.org", bytes.NewBufferString(`{"foo": ["bar"]}`))
-	if err != nil {
-		t.Errorf("failed to create test request: %s", err)
-		return
-	}
-	f, err := os.Create(testSrc)
-	if err != nil {
-		t.Errorf("failed to open test src file %q: %s", testSrc, err)
-		return
-	}
-	err = req.Write(f)
-	if err != nil {
-		t.Errorf("failed to write test request to %q: %s", testSrc, err)
-		err = f.Close()
-		if err != nil {
-			t.Errorf("failed to close test src file %q: %s", testSrc, err)
-		}
-		return
-	}
-	err = f.Close()
-	if err != nil {
-		t.Errorf("failed to close test src file %q: %s", testSrc, err)
-		return
-	}
+	createTestRequest(testSrc, []byte(`{"foo": ["bar"]}`))
 
 	// SaveRequest should succeed if the destination file does not exist
 	testDst := filepath.Join(testDirV1, "foo_req.txt")
@@ -88,30 +86,7 @@ func TestSaveRequest(t *testing.T) {
 	}
 
 	// SaveRequest should succeed if the destination file is different from the source
-	req, err = http.NewRequest("POST", "http://example.org", bytes.NewBufferString(`{"foo": {"bar": 42}}`))
-	if err != nil {
-		t.Errorf("failed to create test request: %s", err)
-		return
-	}
-	f, err = os.Create(testSrc)
-	if err != nil {
-		t.Errorf("failed to open test src file %q: %s", testSrc, err)
-		return
-	}
-	err = req.Write(f)
-	if err != nil {
-		t.Errorf("failed to write test request to %q: %s", testSrc, err)
-		err = f.Close()
-		if err != nil {
-			t.Errorf("failed to close test src file %q: %s", testSrc, err)
-		}
-		return
-	}
-	err = f.Close()
-	if err != nil {
-		t.Errorf("failed to close test src file %q: %s", testSrc, err)
-		return
-	}
+	createTestRequest(testSrc, []byte(`{"foo": {"bar": 42}}`))
 
 	err = saver.SaveRequest()
 	if err != nil {
