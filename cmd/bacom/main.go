@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	// Version is set the release script
 	Version = "dev"
 )
 
