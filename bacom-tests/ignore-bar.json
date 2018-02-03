@@ -13,6 +13,7 @@
     },
     {
         "Path": "/api",
+        "Method": "GET",
         "JSON": {
             "Ignore": [
                 ".Results[].Bar"
