@@ -94,11 +94,11 @@ func compareStatuses(lhsCode, rhsCode int, lhs, rhs string) []string {
 
 func compareResponses(
 	conf testConf,
-	reqPath,
+	reqPath, reqMethod,
 	fname string,
 	baseResp, targetResp *http.Response,
 ) (results []string, err error) {
-	pConf := getPathConf(conf.Paths, reqPath)
+	pConf := getPathConf(conf.Paths, reqMethod, reqPath)
 
 	targetBody, err := readBody(targetResp)
 	if err != nil {
@@ -148,7 +148,7 @@ type readCloser struct {
 func runTest(conf testConf, fname string) (pass bool, err error) {
 	var results []string
 
-	targetResp, baseResp, reqPath, err := getResponses(conf, fname)
+	targetResp, baseResp, reqPath, reqMethod, err := getResponses(conf, fname)
 	if targetResp != nil {
 		defer handleClose(&err, targetResp.Body)
 	}
@@ -193,7 +193,7 @@ func runTest(conf testConf, fname string) (pass bool, err error) {
 			var errCmp error
 
 			results, errCmp = compareResponses(
-				conf, reqPath, fname,
+				conf, reqPath, reqMethod, fname,
 				baseResp, targetResp,
 			)
 
@@ -233,29 +233,29 @@ func readBody(resp *http.Response) (body interface{}, err error) {
 	return body, err
 }
 
-func getResponses(conf testConf, fname string) (target, base *http.Response, path string, err error) {
+func getResponses(conf testConf, fname string) (target, base *http.Response, path, method string, err error) {
 	req, err := parseRequest(fname)
 	if err != nil {
-		return nil, nil, "", err
+		return nil, nil, "", "", err
 	}
 	target, err = getTargetResponse(req, fname, conf.Target)
 	if err != nil {
-		return nil, nil, "", errors.Wrapf(err, "getting target response for %q", fname)
+		return nil, nil, "", "", errors.Wrapf(err, "getting target response for %q", fname)
 	}
 
 	req, err = parseRequest(fname)
 	if err != nil {
-		return target, nil, "", err
+		return target, nil, "", "", err
 	}
 	base, err = getBaseResponse(req, fname, conf.Base)
 	if os.IsNotExist(err) {
-		return target, nil, req.URL.Path, nil
+		return target, nil, req.URL.Path, req.Method, nil
 	}
 	if err != nil {
-		return target, nil, "", errors.Wrapf(err, "getting base response for %q", fname)
+		return target, nil, "", "", errors.Wrapf(err, "getting base response for %q", fname)
 	}
 
-	return target, base, req.URL.Path, nil
+	return target, base, req.URL.Path, req.Method, nil
 }
 
 func parseRequest(fname string) (req *http.Request, err error) {

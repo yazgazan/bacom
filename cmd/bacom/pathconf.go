@@ -1,12 +1,15 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/imdario/mergo"
 	"github.com/yazgazan/bacom"
 )
 
 type pathConf struct {
 	Path    string
+	Method  string
 	JSON    jsonConf
 	Headers headersConf
 }
@@ -22,12 +25,16 @@ type headersConf struct {
 	IgnoreContent []string
 }
 
-func getPathConf(conf []pathConf, path string) pathConf {
+func getPathConf(conf []pathConf, method, path string) pathConf {
 	var pConf pathConf
 
+	method = strings.ToLower(method)
 	for _, c := range conf {
 		ok, err := bacom.MatchPath(c.Path, path)
 		if err != nil || !ok {
+			continue
+		}
+		if c.Method != "" && strings.ToLower(c.Method) != method {
 			continue
 		}
 		err = mergo.Merge(&pConf, c, mergo.WithOverride)
@@ -37,5 +44,6 @@ func getPathConf(conf []pathConf, path string) pathConf {
 	}
 
 	pConf.Path = ""
+	pConf.Method = ""
 	return pConf
 }
