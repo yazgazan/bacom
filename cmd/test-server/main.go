@@ -176,6 +176,16 @@ func notFoundHandler(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(200)
 }
 
+func authHandler(h http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if auth := r.Header.Get("Authorization"); auth != "Bearer foo" {
+			http.Error(w, "access denied", http.StatusForbidden)
+			return
+		}
+		h.ServeHTTP(w, r)
+	}
+}
+
 func main() {
 	var listen string
 	v := v0
@@ -203,11 +213,11 @@ func main() {
 	default:
 		log.Fatalf("unknown version %q", v)
 	case v0:
-		mux.HandleFunc("/api", v0Handler)
+		mux.Handle("/api", authHandler(http.HandlerFunc(v0Handler)))
 	case v1:
-		mux.HandleFunc("/api", v1Handler)
+		mux.Handle("/api", authHandler(http.HandlerFunc(v1Handler)))
 	case v2:
-		mux.HandleFunc("/api", v2Handler)
+		mux.Handle("/api", authHandler(http.HandlerFunc(v2Handler)))
 		mux.HandleFunc("/not-found", notFoundHandler)
 	}
 

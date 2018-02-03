@@ -38,7 +38,7 @@ func listTests(dirname string, long bool) error {
 	}
 
 	for _, fname := range reqFiles {
-		req, err := parseRequest(fname)
+		req, err := parseRequest("", fname)
 		if err != nil {
 			return err
 		}

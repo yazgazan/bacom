@@ -7,8 +7,9 @@ go build ./cmd/test-server || exit $?
 sleep .1
 
 FAILED=0
+preprocess='./preprocess-example -remove-header=X-Version -set-header="Authorization: Bearer foo"'
 
-./bacom test -target-host=localhost:1235 -version=0.x > /dev/null
+./bacom test -target-host=localhost:1235 -version=0.x -target-preprocess="$preprocess" > /dev/null
 if [[ $? -ne 0 ]]; then
     echo "FAIL ./bacom test -target-host=localhost:1235 -version=0.x"
     echo "     should have 0 return code"
@@ -21,7 +22,7 @@ wait
 ./test-server -version=1 &
 sleep .1
 
-./bacom test -target-host=localhost:1235 -version="<=1.x" > /dev/null
+./bacom test -target-host=localhost:1235 -version="<=1.x" -target-preprocess="$preprocess" > /dev/null
 if [[ $? -ne 0 ]]; then
     echo "FAIL ./bacom test -target-host=localhost:1235 -version=<=1.x"
     echo "     should have 0 return code"
@@ -35,14 +36,14 @@ wait
 sleep .1
 
 
-./bacom test -target-host=localhost:1235 > /dev/null
+./bacom test -target-host=localhost:1235 -target-preprocess="$preprocess" > /dev/null
 if [[ $? -eq 0 ]]; then
     echo "FAIL ./bacom test -target-host=localhost:1235"
     echo "     should have non-zero return code"
     FAILED=1
 fi
 
-./bacom test -target-host=localhost:1235 -conf=bacom-tests/ignore-bar.json > /dev/null
+./bacom test -target-host=localhost:1235 -conf=bacom-tests/ignore-bar.json -target-preprocess="$preprocess" > /dev/null
 if [[ $? -ne 0 ]]; then
     echo "FAIL ./bacom test -target-host=localhost:1235"
     echo "     should have 0 return code"

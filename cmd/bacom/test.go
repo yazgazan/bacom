@@ -3,12 +3,14 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/fatih/color"
@@ -234,7 +236,7 @@ func readBody(resp *http.Response) (body interface{}, err error) {
 }
 
 func getResponses(conf testConf, fname string) (target, base *http.Response, path, method string, err error) {
-	req, err := parseRequest(fname)
+	req, err := parseRequest(conf.Target.PreProcess, fname)
 	if err != nil {
 		return nil, nil, "", "", err
 	}
@@ -243,7 +245,7 @@ func getResponses(conf testConf, fname string) (target, base *http.Response, pat
 		return nil, nil, "", "", errors.Wrapf(err, "getting target response for %q", fname)
 	}
 
-	req, err = parseRequest(fname)
+	req, err = parseRequest(conf.Base.PreProcess, fname)
 	if err != nil {
 		return target, nil, "", "", err
 	}
@@ -258,14 +260,31 @@ func getResponses(conf testConf, fname string) (target, base *http.Response, pat
 	return target, base, req.URL.Path, req.Method, nil
 }
 
-func parseRequest(fname string) (req *http.Request, err error) {
+func parseRequest(preprocess, fname string) (req *http.Request, err error) {
 	f, err := os.Open(fname)
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing request %q", fname)
 	}
 	defer handleClose(&err, f)
 
-	req, err = http.ReadRequest(bufio.NewReader(f))
+	if preprocess == "" {
+		req, err = http.ReadRequest(bufio.NewReader(f))
+
+		return req, errors.Wrapf(err, "parsing request %q", fname)
+	}
+
+	// TODO(yazgazan): add timeout using the context
+	cmd := exec.CommandContext(context.Background(), "/bin/sh", "-c", preprocess)
+	cmd.Stdin = f
+	b := &bytes.Buffer{}
+	cmd.Stdout = b
+
+	err = cmd.Run()
+	if err != nil {
+		return req, errors.Wrapf(err, "parsing request %q", fname)
+	}
+
+	req, err = http.ReadRequest(bufio.NewReader(b))
 
 	return req, errors.Wrapf(err, "parsing request %q", fname)
 }

@@ -77,8 +77,9 @@ func (c constraints) String() string {
 }
 
 type targetConf struct {
-	Host     string
-	UseHTTPS bool
+	Host       string
+	UseHTTPS   bool
+	PreProcess string
 }
 
 func printGlobalUsage() {
@@ -159,8 +160,10 @@ func parseTestFlags(args []string) (c testConf, err error) {
 
 	flags.StringVar(&c.Base.Host, "base-host", "", "host for the base to compare to (leave empty to use saved tests versions)")
 	flags.BoolVar(&c.Base.UseHTTPS, "base-use-https", false, "use https for requests to the base host")
+	flags.StringVar(&c.Base.PreProcess, "base-preprocess", "", "command used to pre-process requests sent to the base")
 	flags.StringVar(&c.Target.Host, "target-host", "localhost", "host for the target to compare (can include port)")
 	flags.BoolVar(&c.Target.UseHTTPS, "target-use-https", false, "use httpsfor the requests to the target host")
+	flags.StringVar(&c.Target.PreProcess, "target-preprocess", "", "command used to pre-process requests sent to the target")
 	err = flags.Parse(args)
 	if err != nil {
 		return c, err
