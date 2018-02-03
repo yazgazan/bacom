@@ -2,6 +2,7 @@
 
 go build ./cmd/bacom || exit $?
 go build ./cmd/test-server || exit $?
+go build ./cmd/preprocess-example || exit $?
 
 ./test-server -version=0 &
 sleep .1
