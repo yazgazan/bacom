@@ -30,9 +30,27 @@ func importHarCmd(args []string) {
 }
 
 func normalize(s string) string {
-	replacer := strings.NewReplacer("/", "-", "-", "--")
+	var out []byte
 
-	return replacer.Replace(s)
+	for _, c := range []byte(s) {
+		if c != '/' {
+			out = append(out, c)
+			continue
+		}
+		if len(out) == 0 {
+			continue
+		}
+		if out[len(out)-1] == '-' {
+			continue
+		}
+		out = append(out, '-')
+	}
+
+	if len(out) != 0 && out[len(out)-1] == '-' {
+		return string(out[:len(out)-1])
+	}
+
+	return string(out)
 }
 
 func importFromFile(fname, outDir string, verbose bool) (err error) {
@@ -62,7 +80,7 @@ func importFromFile(fname, outDir string, verbose bool) (err error) {
 		if err != nil {
 			return err
 		}
-		name := normalize(u.Path)
+		name := strings.ToLower(req.Method) + "-" + normalize(u.Path)
 
 		reqFname, err := importReq(verbose, outDir, name, req)
 		if err != nil {
