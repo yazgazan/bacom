@@ -76,7 +76,7 @@ func runTestsForVersion(conf testConf, dirname string) (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		printPass(ok, conf.Quiet, filepath.Join(dirname, fname))
+		printPass(ok, conf.Quiet, fname)
 		passed = passed && ok
 	}
 
