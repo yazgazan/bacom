@@ -142,11 +142,6 @@ func compareResponses(
 	return results, nil
 }
 
-type readCloser struct {
-	io.Reader
-	io.Closer
-}
-
 func runTest(conf testConf, fname string) (pass bool, err error) {
 	var results []string
 
@@ -165,14 +160,14 @@ func runTest(conf testConf, fname string) (pass bool, err error) {
 
 	if conf.Save != "" {
 		b := &bytes.Buffer{}
-		r := io.TeeReader(targetResp.Body, b)
+		_, err = io.Copy(b, targetResp.Body)
+		if err != nil {
+			return false, errors.Wrapf(err, "reading target response for %q", fname)
+		}
 		saveResp := &http.Response{}
 		*saveResp = *targetResp
-		targetResp.Body = readCloser{
-			Reader: r,
-			Closer: targetResp.Body,
-		}
-		saveResp.Body = ioutil.NopCloser(b)
+		targetResp.Body = ioutil.NopCloser(b)
+		saveResp.Body = ioutil.NopCloser(duplicateBuffer(b))
 		errg.Go(func() error {
 			saver := bacom.NewSaver(filepath.Join(conf.Dir, conf.Save), fname)
 
@@ -211,6 +206,14 @@ func runTest(conf testConf, fname string) (pass bool, err error) {
 	printResults(fname, results)
 
 	return len(results) == 0, nil
+}
+
+func duplicateBuffer(b *bytes.Buffer) *bytes.Buffer {
+	buf := make([]byte, b.Len())
+
+	copy(buf, b.Bytes())
+
+	return bytes.NewBuffer(buf)
 }
 
 func printResults(fname string, results []string) {
