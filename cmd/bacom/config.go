@@ -317,7 +317,7 @@ func parseCurlFlags(args []string) (c curlConf, err error) {
 	flags.StringVar(&c.Dir, "dir", "", "folder to save the request/response files in")
 	flags.BoolVar(&c.Verbose, "v", false, "verbose")
 
-	flags.StringVar(&c.Method, "X", "GET", "Specify request command to use")
+	flags.StringVar(&c.Method, "X", http.MethodGet, "Specify request command to use")
 	flags.StringVar(&c.URL, "url", "", "URL to work with")
 	flags.Var(&c.Headers, "H", "Pass custom header to server (can be repeated)")
 
@@ -340,6 +340,9 @@ func parseCurlFlags(args []string) (c curlConf, err error) {
 	}
 	if len(flags.Args()) == 1 {
 		c.URL = flags.Args()[0]
+	}
+	if c.Data.ReadCloser != nil && c.Method == http.MethodGet {
+		c.Method = http.MethodPost
 	}
 
 	return c, nil
