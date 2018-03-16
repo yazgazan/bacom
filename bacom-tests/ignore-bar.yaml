@@ -1,0 +1,29 @@
+conf:
+  - path: "**"
+    headers:
+      ignore:
+        - Connection
+      ignore_content:
+        - Age
+        - Content-MD5
+        - Content-Range
+        - Date
+        - Expires
+        - Last-Modified
+        - Public-Key-Pins
+        - Server
+        - Set-Cookie
+        - Etag
+        - Retry-After
+        - X-*
+        - Content-Length
+  - path: /api
+    method: GET
+    json:
+      ignore:
+        - .Results[].Bar
+      ignore_missing:
+        - .Results[].Foo
+    headers:
+      ignore_content:
+        - Cache-Control

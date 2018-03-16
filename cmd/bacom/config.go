@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -146,7 +145,6 @@ type testConf struct {
 func parseTestFlags(args []string) (c testConf, err error) {
 	c = testConf{
 		Constraints: defaultConstraints,
-		Paths:       defaultPathsConfig,
 	}
 
 	flags := flag.NewFlagSet(getBinaryName()+" "+testCmdName, flag.ExitOnError)
@@ -176,13 +174,7 @@ func parseTestFlags(args []string) (c testConf, err error) {
 		return c, nil
 	}
 
-	f, err := os.Open(c.PathsConfFile)
-	if err != nil {
-		return c, nil
-	}
-	defer handleClose(&err, f)
-
-	err = json.NewDecoder(f).Decode(&c.Paths)
+	c.Paths, err = readPathConf(c.PathsConfFile, defaultPathsConfig)
 
 	return c, errors.Wrapf(err, "parsing configuration file %q", c.PathsConfFile)
 }
