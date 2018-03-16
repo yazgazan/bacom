@@ -46,7 +46,21 @@ fi
 
 ./bacom test -target-host=localhost:1235 -conf=bacom-tests/ignore-bar.json -target-preprocess="$preprocess" > /dev/null
 if [[ $? -ne 0 ]]; then
-    echo "FAIL ./bacom test -target-host=localhost:1235"
+    echo "FAIL ./bacom test -target-host=localhost:1235 -conf=bacom-tests/ignore-bar.json"
+    echo "     should have 0 return code"
+    FAILED=1
+fi
+
+./bacom test -target-host=localhost:1235 -conf=bacom-tests/ignore-bar.yaml -target-preprocess="$preprocess" > /dev/null
+if [[ $? -ne 0 ]]; then
+    echo "FAIL ./bacom test -target-host=localhost:1235 -conf=bacom-tests/ignore-bar.yaml"
+    echo "     should have 0 return code"
+    FAILED=1
+fi
+
+./bacom test -target-host=localhost:1235 -conf=bacom-tests/ignore-bar.toml -target-preprocess="$preprocess" > /dev/null
+if [[ $? -ne 0 ]]; then
+    echo "FAIL ./bacom test -target-host=localhost:1235 -conf=bacom-tests/ignore-bar.toml"
     echo "     should have 0 return code"
     FAILED=1
 fi

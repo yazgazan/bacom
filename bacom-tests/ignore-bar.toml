@@ -1,0 +1,27 @@
+[[conf]]
+    path = "**"
+    [conf.headers]
+        ignore = ["Connection"]
+        ignoreContent = [
+            "Age",
+            "Content-MD5",
+            "Content-Range",
+            "Date",
+            "Expires",
+            "Last-Modified",
+            "Public-Key-Pins",
+            "Server",
+            "Set-Cookie",
+            "Etag",
+            "Retry-After",
+            "X-*",
+            "Content-Length"
+        ]
+[[conf]]
+    path = "/api"
+    method = "GET"
+    [conf.json]
+        ignore = [".Results[].Bar"]
+        ignoreMissing = [".Results[].Foo"]
+    [conf.headers]
+        ignoreContent = ["Cache-Control"]
