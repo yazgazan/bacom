@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -87,89 +88,156 @@ func setV2Headers(h http.Header) {
 	h.Set("Cache-Control", "max-age=300")
 }
 
-func v0Handler(w http.ResponseWriter, req *http.Request) {
-	setV0Headers(w.Header())
+func v0Handler(stream bool) func(w http.ResponseWriter, req *http.Request) {
+	encode := encodeV0
+	if stream {
+		encode = encodeV0Stream
+	}
 
-	defer func() {
-		err := req.Body.Close()
+	return func(w http.ResponseWriter, req *http.Request) {
+		setV0Headers(w.Header())
+
+		defer func() {
+			err := req.Body.Close()
+			if err != nil {
+				log.Print("Error:", err)
+			}
+		}()
+
+		err := encode(w, ResponseV0{
+			Results: []V0{
+				{
+					Foo: "bar",
+					Bar: 42,
+				},
+				{
+					Foo: "hello world",
+					Bar: 11,
+				},
+			},
+		})
+
 		if err != nil {
-			log.Print("Error:", err)
+			log.Print("error encoding v0 response:", err)
 		}
-	}()
-
-	err := json.NewEncoder(w).Encode(ResponseV0{
-		Results: []V0{
-			{
-				Foo: "bar",
-				Bar: 42,
-			},
-			{
-				Foo: "hello world",
-				Bar: 11,
-			},
-		},
-	})
-
-	if err != nil {
-		log.Print("error encoding v0 response:", err)
 	}
 }
 
-func v1Handler(w http.ResponseWriter, req *http.Request) {
-	setV1Headers(w.Header())
+func encodeV0(w io.Writer, resp ResponseV0) error {
+	return json.NewEncoder(w).Encode(resp)
+}
 
-	defer func() {
-		err := req.Body.Close()
+func encodeV0Stream(w io.Writer, resp ResponseV0) error {
+	enc := json.NewEncoder(w)
+	for _, result := range resp.Results {
+		err := enc.Encode(result)
 		if err != nil {
-			log.Print("Error:", err)
+			return err
 		}
-	}()
+	}
 
-	err := json.NewEncoder(w).Encode(ResponseV1{
-		Results: []V1{
-			{
-				Foo:  "hello world",
-				Bar:  23,
-				Buzz: 1.2,
+	return nil
+}
+
+func v1Handler(stream bool) func(w http.ResponseWriter, req *http.Request) {
+	encode := encodeV1
+	if stream {
+		encode = encodeV1Stream
+	}
+	return func(w http.ResponseWriter, req *http.Request) {
+		setV1Headers(w.Header())
+
+		defer func() {
+			err := req.Body.Close()
+			if err != nil {
+				log.Print("Error:", err)
+			}
+		}()
+
+		err := encode(w, ResponseV1{
+			Results: []V1{
+				{
+					Foo:  "hello world",
+					Bar:  23,
+					Buzz: 1.2,
+				},
 			},
-		},
-	})
+		})
 
-	if err != nil {
-		log.Print("error encoding v1 response:", err)
+		if err != nil {
+			log.Print("error encoding v1 response:", err)
+		}
 	}
 }
 
-func v2Handler(w http.ResponseWriter, req *http.Request) {
-	setV2Headers(w.Header())
+func encodeV1(w io.Writer, resp ResponseV1) error {
+	return json.NewEncoder(w).Encode(resp)
+}
 
-	defer func() {
-		err := req.Body.Close()
+func encodeV1Stream(w io.Writer, resp ResponseV1) error {
+	enc := json.NewEncoder(w)
+	for _, result := range resp.Results {
+		err := enc.Encode(result)
 		if err != nil {
-			log.Print("Error:", err)
+			return err
 		}
-	}()
-
-	err := json.NewEncoder(w).Encode(ResponseV2{
-		Results: []V2{
-			{
-				Bar:  []int{1, 2, 3},
-				Buzz: 2.1,
-			},
-			{
-				Bar:  []int{4, 5},
-				Buzz: 6.4,
-			},
-			{
-				Bar:  []int{6},
-				Buzz: 0.02,
-			},
-		},
-	})
-
-	if err != nil {
-		log.Print("error encoding v2 response:", err)
 	}
+
+	return nil
+}
+
+func v2Handler(stream bool) func(w http.ResponseWriter, req *http.Request) {
+	encode := encodeV2
+	if stream {
+		encode = encodeV2Stream
+	}
+	return func(w http.ResponseWriter, req *http.Request) {
+		setV2Headers(w.Header())
+
+		defer func() {
+			err := req.Body.Close()
+			if err != nil {
+				log.Print("Error:", err)
+			}
+		}()
+
+		err := encode(w, ResponseV2{
+			Results: []V2{
+				{
+					Bar:  []int{1, 2, 3},
+					Buzz: 2.1,
+				},
+				{
+					Bar:  []int{4, 5},
+					Buzz: 6.4,
+				},
+				{
+					Bar:  []int{6},
+					Buzz: 0.02,
+				},
+			},
+		})
+
+		if err != nil {
+			log.Print("error encoding v2 response:", err)
+		}
+	}
+}
+
+func encodeV2(w io.Writer, resp ResponseV2) error {
+	return json.NewEncoder(w).Encode(resp)
+}
+
+func encodeV2Stream(w io.Writer, resp ResponseV2) error {
+	enc := json.NewEncoder(w)
+	for _, result := range resp.Results {
+		err := enc.Encode(result)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func notFoundHandler(w http.ResponseWriter, _ *http.Request) {
@@ -188,10 +256,12 @@ func authHandler(h http.Handler) http.HandlerFunc {
 
 func main() {
 	var listen string
+	var stream bool
 	v := v0
 	mux := &http.ServeMux{}
 
 	flag.StringVar(&listen, "listen", "localhost:1235", "host:port to listen on")
+	flag.BoolVar(&stream, "stream", false, "return JSON stream")
 	flag.Var(&v, "version", "version of the server to run (v0, v1 or v2)")
 	flag.Parse()
 
@@ -213,11 +283,11 @@ func main() {
 	default:
 		log.Fatalf("unknown version %q", v)
 	case v0:
-		mux.Handle("/api", authHandler(http.HandlerFunc(v0Handler)))
+		mux.Handle("/api", authHandler(http.HandlerFunc(v0Handler(stream))))
 	case v1:
-		mux.Handle("/api", authHandler(http.HandlerFunc(v1Handler)))
+		mux.Handle("/api", authHandler(http.HandlerFunc(v1Handler(stream))))
 	case v2:
-		mux.Handle("/api", authHandler(http.HandlerFunc(v2Handler)))
+		mux.Handle("/api", authHandler(http.HandlerFunc(v2Handler(stream))))
 		mux.HandleFunc("/not-found", notFoundHandler)
 	}
 

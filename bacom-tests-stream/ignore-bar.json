@@ -1,0 +1,29 @@
+[
+    {
+        "Path": "**",
+        "Headers": {
+            "Ignore": ["Connection"],
+            "IgnoreContent": [
+                "Age", "Content-MD5", "Content-Range", "Date",
+                "Expires", "Last-Modified", "Public-Key-Pins",
+                "Server", "Set-Cookie", "Etag", "Retry-After",
+                "X-*", "Content-Length"
+            ]
+        }
+    },
+    {
+        "Path": "/api",
+        "Method": "GET",
+        "JSON": {
+            "Ignore": [
+                "[].Bar"
+            ],
+            "IgnoreMissing": [
+                "[].Foo"
+            ]
+        },
+        "Headers": {
+            "IgnoreContent": ["Cache-Control"]
+        }
+    }
+]

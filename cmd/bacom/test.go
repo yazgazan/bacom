@@ -234,12 +234,36 @@ func readBody(resp *http.Response) (body interface{}, err error) {
 		return nil, nil
 	}
 
-	err = json.NewDecoder(resp.Body).Decode(&body)
-
+	dec := json.NewDecoder(resp.Body)
+	err = dec.Decode(&body)
 	if err == io.EOF {
 		return nil, nil
 	}
-	return body, err
+	if err != nil {
+		return []interface{}{body}, err
+	}
+	if dec.More() {
+		return decodeStream(dec, []interface{}{body})
+	}
+
+	return []interface{}{body}, err
+}
+
+func decodeStream(dec *json.Decoder, body []interface{}) (interface{}, error) {
+	for dec.More() {
+		var partial interface{}
+		err := dec.Decode(&partial)
+		if err == io.EOF {
+			return body, nil
+		}
+		if err != nil {
+			return body, err
+		}
+
+		body = append(body, partial)
+	}
+
+	return body, nil
 }
 
 func getResponses(conf testConf, fname string) (target, base *http.Response, path, method string, err error) {

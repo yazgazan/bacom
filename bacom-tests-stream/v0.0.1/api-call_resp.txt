@@ -1,0 +1,7 @@
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Thu, 29 Mar 2018 14:32:45 GMT
+Content-Length: 54
+
+{"Foo":"bar","Bar":42}
+{"Foo":"hello world","Bar":11}
