@@ -197,6 +197,10 @@ func parseImportHARFlags(args []string) (c importConf, err error) {
 
 	c.Files = flags.Args()
 
+	if len(c.Files) == 0 {
+		return c, errors.New("missing input file(s)")
+	}
+
 	return c, nil
 }
 
