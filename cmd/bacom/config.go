@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/Masterminds/semver"
@@ -179,17 +180,66 @@ func parseTestFlags(args []string) (c testConf, err error) {
 	return c, errors.Wrapf(err, "parsing configuration file %q", c.PathsConfFile)
 }
 
-type importConf struct {
+type stringsFlag []string
+
+func (ss *stringsFlag) Set(s string) error {
+	parts := strings.Split(s, ",")
+
+	for _, part := range parts {
+		if len(part) == 0 {
+			continue
+		}
+
+		*ss = append(*ss, part)
+	}
+
+	return nil
+}
+
+func (ss stringsFlag) String() string {
+	return strings.Join(ss, ",")
+}
+
+type regexesFlag []*regexp.Regexp
+
+func (rr *regexesFlag) Set(s string) error {
+	r, err := regexp.Compile(s)
+	if err != nil {
+		return err
+	}
+
+	*rr = append(*rr, r)
+
+	return nil
+}
+
+func (rr regexesFlag) String() string {
+	return fmt.Sprintf("%q", []*regexp.Regexp(rr))
+}
+
+type importHARConf struct {
 	Dir     string
 	Files   []string
 	Verbose bool
+
+	Filters harFilters
 }
 
-func parseImportHARFlags(args []string) (c importConf, err error) {
+func parseImportHARFlags(args []string) (c importHARConf, err error) {
+	c.Filters.IgnoreMethods = stringsFlag{http.MethodOptions, http.MethodHead}
+	c.Filters.IgnorePaths = stringsFlag{"/favicon.ico"}
+
 	flags := flag.NewFlagSet(getBinaryName()+" "+importCmdName+" "+harSubCmdName, flag.ExitOnError)
 
 	flags.StringVar(&c.Dir, "out", ".", "output directory")
 	flags.BoolVar(&c.Verbose, "v", false, "verbose")
+	flags.Var(&c.Filters.Paths, "paths", "path patterns to import (can be repeated)")
+	flags.Var(&c.Filters.IgnorePaths, "ignore-paths", "path patterns to ignore (can be repeated)")
+	flags.Var(&c.Filters.Hosts, "hosts", "host regexes to import (can be repeated)")
+	flags.Var(&c.Filters.IgnoreHosts, "ignore-hosts", "host regexes to ignore (can be repeated)")
+	flags.Var(&c.Filters.Methods, "methods", "methods to import (can be repeated)")
+	flags.Var(&c.Filters.IgnoreMethods, "ignore-methods", "methods to ignore (can be repeated)")
+
 	err = flags.Parse(args)
 	if err != nil {
 		return c, err

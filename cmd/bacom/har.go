@@ -10,6 +10,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	"github.com/yazgazan/bacom"
 	"github.com/yazgazan/bacom/har"
 )
@@ -22,11 +24,79 @@ func importHarCmd(args []string) {
 	}
 
 	for _, fname := range c.Files {
-		err := importFromFile(fname, c.Dir, c.Verbose)
+		err := importFromFile(fname, c.Dir, c.Verbose, c.Filters)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
+}
+
+type harFilters struct {
+	Paths         stringsFlag
+	IgnorePaths   stringsFlag
+	Hosts         regexesFlag
+	IgnoreHosts   regexesFlag
+	Methods       stringsFlag
+	IgnoreMethods stringsFlag
+}
+
+func (f harFilters) Match(req *http.Request) error {
+	foundMatch := len(f.Paths) == 0
+	for _, p := range f.Paths {
+		match, err := bacom.MatchPath(p, req.URL.Path)
+		if err != nil {
+			return err
+		}
+		if match {
+			foundMatch = true
+			break
+		}
+	}
+	if !foundMatch {
+		return errors.Errorf("%s %q does not match the path filters", req.Method, req.URL)
+	}
+	for _, p := range f.IgnorePaths {
+		match, err := bacom.MatchPath(p, req.URL.Path)
+		if err != nil {
+			fmt.Printf("%s %q excluded by error: %s\n", req.Method, req.URL, err)
+			return err
+		}
+		if match {
+			return errors.Errorf("%s %q does not match the path filters", req.Method, req.URL)
+		}
+	}
+
+	foundMatch = len(f.Hosts) == 0
+	for _, h := range f.Hosts {
+		if h.MatchString(req.URL.Hostname()) {
+			foundMatch = true
+		}
+	}
+	if !foundMatch {
+		return errors.Errorf("%s %q does not match the host filters", req.Method, req.URL)
+	}
+	for _, h := range f.IgnoreHosts {
+		if h.MatchString(req.URL.Hostname()) {
+			return errors.Errorf("%s %q does not match the host filters", req.Method, req.URL)
+		}
+	}
+
+	foundMatch = len(f.Methods) == 0
+	for _, m := range f.Methods {
+		if strings.ToLower(req.Method) == strings.ToLower(m) {
+			foundMatch = true
+		}
+	}
+	if !foundMatch {
+		return errors.Errorf("%s %q does not match the method filters", req.Method, req.URL)
+	}
+	for _, m := range f.IgnoreMethods {
+		if strings.ToLower(req.Method) == strings.ToLower(m) {
+			return errors.Errorf("%s %q does not match the method filters", req.Method, req.URL)
+		}
+	}
+
+	return nil
 }
 
 func normalize(s string) string {
@@ -53,7 +123,7 @@ func normalize(s string) string {
 	return string(out)
 }
 
-func importFromFile(fname, outDir string, verbose bool) (err error) {
+func importFromFile(fname, outDir string, verbose bool, filters harFilters) (err error) {
 	var harObj har.HAR
 
 	f, err := os.Open(fname)
@@ -75,6 +145,13 @@ func importFromFile(fname, outDir string, verbose bool) (err error) {
 		req, err := entry.Request.ToHTTPRequest(u.Host, false)
 		if err != nil {
 			return err
+		}
+		err = filters.Match(req)
+		if err != nil && verbose {
+			fmt.Fprintf(os.Stderr, "excluding request: %s\n", err)
+		}
+		if err != nil {
+			continue
 		}
 		resp, err := entry.Response.ToHTTPResponse(req)
 		if err != nil {
