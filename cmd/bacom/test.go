@@ -72,6 +72,9 @@ func runTestsForVersion(conf testConf, dirname string) (bool, error) {
 
 	passed := true
 	for _, fname := range reqFiles {
+		if !reqFilenameMatches(conf.TestFiles, fname) {
+			continue
+		}
 		ok, err := runTest(conf, fname)
 		if err != nil {
 			return false, err
@@ -81,6 +84,21 @@ func runTestsForVersion(conf testConf, dirname string) (bool, error) {
 	}
 
 	return passed, nil
+}
+
+func reqFilenameMatches(fnames []string, fpath string) bool {
+	if len(fnames) == 0 {
+		return true
+	}
+
+	fname := filepath.Base(fpath)
+	for _, name := range fnames {
+		if fname == name {
+			return true
+		}
+	}
+
+	return false
 }
 
 func compareStatuses(lhsCode, rhsCode int, lhs, rhs string) []string {

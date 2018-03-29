@@ -133,6 +133,7 @@ func getBinaryName() string {
 type testConf struct {
 	Dir           string
 	Constraints   constraints
+	TestFiles     stringsFlag
 	Save          string
 	Verbose       bool
 	Quiet         bool
@@ -153,6 +154,7 @@ func parseTestFlags(args []string) (c testConf, err error) {
 
 	flags.StringVar(&c.Dir, "dir", defaultDir, "directory containing the tests")
 	flags.Var(&c.Constraints, "version", "test version")
+	flags.Var(&c.TestFiles, "tests", "list of request files to run (can be repeated)")
 	flags.StringVar(&c.Save, "save", "", "save requests to target to the specified version")
 	flags.BoolVar(&c.Verbose, "v", false, "print reasons")
 	flags.BoolVar(&c.Quiet, "q", false, "Reduce standard output")
