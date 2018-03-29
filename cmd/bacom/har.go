@@ -41,6 +41,23 @@ type harFilters struct {
 }
 
 func (f harFilters) Match(req *http.Request) error {
+
+	err := f.matchMethod(req)
+	if err != nil {
+		return err
+	}
+
+	err = f.matchPath(req)
+	if err != nil {
+		return err
+	}
+
+	err = f.matchHost(req)
+
+	return err
+}
+
+func (f harFilters) matchPath(req *http.Request) error {
 	foundMatch := len(f.Paths) == 0
 	for _, p := range f.Paths {
 		match, err := bacom.MatchPath(p, req.URL.Path)
@@ -66,7 +83,11 @@ func (f harFilters) Match(req *http.Request) error {
 		}
 	}
 
-	foundMatch = len(f.Hosts) == 0
+	return nil
+}
+
+func (f harFilters) matchHost(req *http.Request) error {
+	foundMatch := len(f.Hosts) == 0
 	for _, h := range f.Hosts {
 		if h.MatchString(req.URL.Hostname()) {
 			foundMatch = true
@@ -81,7 +102,11 @@ func (f harFilters) Match(req *http.Request) error {
 		}
 	}
 
-	foundMatch = len(f.Methods) == 0
+	return nil
+}
+
+func (f harFilters) matchMethod(req *http.Request) error {
+	foundMatch := len(f.Methods) == 0
 	for _, m := range f.Methods {
 		if strings.ToLower(req.Method) == strings.ToLower(m) {
 			foundMatch = true
@@ -138,14 +163,11 @@ func importFromFile(fname, outDir string, verbose bool, filters harFilters) (err
 	}
 
 	for _, entry := range harObj.Log.Entries {
-		u, err := url.Parse(entry.Request.URL)
+		u, req, resp, err := parseEntry(entry)
 		if err != nil {
 			return err
 		}
-		req, err := entry.Request.ToHTTPRequest(u.Host, false)
-		if err != nil {
-			return err
-		}
+
 		err = filters.Match(req)
 		if err != nil && verbose {
 			fmt.Fprintf(os.Stderr, "excluding request: %s\n", err)
@@ -153,10 +175,7 @@ func importFromFile(fname, outDir string, verbose bool, filters harFilters) (err
 		if err != nil {
 			continue
 		}
-		resp, err := entry.Response.ToHTTPResponse(req)
-		if err != nil {
-			return err
-		}
+
 		name := strings.ToLower(req.Method) + "-" + normalize(u.Path)
 
 		reqFname, err := importReq(verbose, outDir, name, req)
@@ -171,6 +190,21 @@ func importFromFile(fname, outDir string, verbose bool, filters harFilters) (err
 	}
 
 	return nil
+}
+
+func parseEntry(entry har.Entry) (*url.URL, *http.Request, *http.Response, error) {
+	u, err := url.Parse(entry.Request.URL)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	req, err := entry.Request.ToHTTPRequest(u.Host, false)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	resp, err := entry.Response.ToHTTPResponse(req)
+
+	return u, req, resp, err
 }
 
 func importReq(verbose bool, outDir, name string, req *http.Request) (fname string, err error) {
