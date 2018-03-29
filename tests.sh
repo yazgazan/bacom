@@ -68,13 +68,9 @@ fi
 curl http://localhost:1235/stop || exit $?
 wait
 
-
-
-
-
-
-
-
+##
+# Testing JSON streams
+##
 
 ./test-server -stream -version=0 &
 sleep .1
@@ -145,15 +141,6 @@ if [[ $FAILED -ne 0 ]]; then
 else
     echo "OK"
 fi
-
-
-
-
-
-
-
-
-
 
 if [[ $FAILED -ne 0 ]]; then
     exit 1
