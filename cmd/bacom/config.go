@@ -433,6 +433,7 @@ func parseCurlFlags(args []string) (c curlConf, err error) {
 type listConf struct {
 	Dir         string
 	Long        bool
+	Filenames   bool
 	Constraints constraints
 
 	Filters reqFilters
@@ -447,6 +448,7 @@ func parseListFlags(args []string) (c listConf, err error) {
 
 	flags.StringVar(&c.Dir, "dir", defaultDir, "folder containing the tests")
 	flags.BoolVar(&c.Long, "l", false, "prints detailed listing")
+	flags.BoolVar(&c.Filenames, "f", false, "print requests filenames")
 	flags.Var(&c.Constraints, "version", "constraint listing to these tests")
 
 	flags.Var(&c.Filters.Paths, "paths", "path patterns to list (can be repeated)")

@@ -21,7 +21,7 @@ func listCmd(args []string) {
 	}
 
 	for _, dirname := range versions {
-		err = listTests(dirname, c.Long, c.Filters)
+		err = listTests(dirname, c)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error:", err)
 			os.Exit(1)
@@ -29,8 +29,10 @@ func listCmd(args []string) {
 	}
 }
 
-func listTests(dirname string, long bool, filters reqFilters) error {
-	fmt.Printf("%s:\n", dirname)
+func listTests(dirname string, conf listConf) error {
+	if !conf.Filenames {
+		fmt.Printf("%s:\n", dirname)
+	}
 
 	reqFiles, err := bacom.GetRequestsFiles(dirname)
 	if err != nil {
@@ -42,11 +44,15 @@ func listTests(dirname string, long bool, filters reqFilters) error {
 		if err != nil {
 			return err
 		}
-		if filters.Match(req) != nil {
+		if conf.Filters.Match(req) != nil {
+			continue
+		}
+		if conf.Filenames {
+			fmt.Println(fname)
 			continue
 		}
 		fmt.Printf("\t%s %s\n", req.Method, req.URL)
-		if long {
+		if conf.Long {
 			fmt.Printf("\t\tPath:           %s\n", fname)
 			resp, err := getBaseResponse(req, fname, targetConf{})
 			if err != nil {
