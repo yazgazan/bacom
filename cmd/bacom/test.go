@@ -75,7 +75,7 @@ func runTestsForVersion(conf testConf, dirname string) (bool, error) {
 		if !reqFilenameMatches(conf.TestFiles, fname) {
 			continue
 		}
-		ok, err := runTest(conf, fname)
+		ok, err := runTest(conf, filepath.Base(dirname), fname)
 		if err != nil {
 			return false, err
 		}
@@ -114,11 +114,12 @@ func compareStatuses(lhsCode, rhsCode int, lhs, rhs string) []string {
 
 func compareResponses(
 	conf testConf,
+	version string,
 	reqPath, reqMethod,
 	fname string,
 	baseResp, targetResp *http.Response,
 ) (results []string, err error) {
-	pConf := getPathConf(conf.Paths, reqMethod, reqPath)
+	pConf := getPathConf(conf.Verbose, conf.Paths, version, reqMethod, reqPath)
 
 	targetBody, err := readBody(targetResp)
 	if err != nil {
@@ -164,7 +165,7 @@ func compareResponses(
 	return results, err
 }
 
-func runTest(conf testConf, fname string) (pass bool, err error) {
+func runTest(conf testConf, version, fname string) (pass bool, err error) {
 	var results []string
 
 	targetResp, baseResp, reqPath, reqMethod, err := getResponses(conf, fname)
@@ -212,7 +213,7 @@ func runTest(conf testConf, fname string) (pass bool, err error) {
 			var errCmp error
 
 			results, errCmp = compareResponses(
-				conf, reqPath, reqMethod, fname,
+				conf, version, reqPath, reqMethod, fname,
 				baseResp, targetResp,
 			)
 

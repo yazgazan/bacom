@@ -23,10 +23,11 @@ const (
 )
 
 type pathConf struct {
-	Path    string
-	Method  string
-	JSON    jsonConf
-	Headers headersConf
+	Path     string
+	Method   string
+	Versions constraints
+	JSON     jsonConf
+	Headers  headersConf
 }
 
 type jsonConf struct {
@@ -40,7 +41,7 @@ type headersConf struct {
 	IgnoreContent []string `yaml:"ignore_content"`
 }
 
-func getPathConf(conf []pathConf, method, path string) pathConf {
+func getPathConf(verbose bool, conf []pathConf, version, method, path string) pathConf {
 	var pConf pathConf
 
 	method = strings.ToLower(method)
@@ -50,6 +51,10 @@ func getPathConf(conf []pathConf, method, path string) pathConf {
 			continue
 		}
 		if c.Method != "" && strings.ToLower(c.Method) != method {
+			continue
+		}
+		ok, err = bacom.VersionMatch(verbose, c.Versions, version)
+		if err != nil || !ok {
 			continue
 		}
 		err = mergo.Merge(&pConf, c, mergo.WithOverride)

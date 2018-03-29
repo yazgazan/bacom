@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -63,6 +64,22 @@ type constraints struct {
 	str string
 }
 
+func (c constraints) Check(v *semver.Version) bool {
+	if c.Constraints == nil {
+		return true
+	}
+
+	return c.Constraints.Check(v)
+}
+
+func (c constraints) Validate(v *semver.Version) (bool, []error) {
+	if c.Constraints == nil {
+		return true, nil
+	}
+
+	return c.Constraints.Validate(v)
+}
+
 func (c *constraints) Set(s string) error {
 	var err error
 
@@ -74,6 +91,21 @@ func (c *constraints) Set(s string) error {
 
 func (c constraints) String() string {
 	return c.str
+}
+
+func (c *constraints) UnmarshalJSON(b []byte) error {
+	var s string
+
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		return err
+	}
+
+	return c.Set(s)
+}
+
+func (c *constraints) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.String())
 }
 
 type targetConf struct {

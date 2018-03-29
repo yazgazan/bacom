@@ -20,6 +20,7 @@
 [[conf]]
     path = "/api"
     method = "GET"
+    version = "*"
     [conf.json]
         ignore = ["[].Bar"]
         ignoreMissing = ["[].Foo"]

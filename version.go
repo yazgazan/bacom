@@ -55,6 +55,21 @@ func FindVersions(dir string, verbose bool, constraints Constraints) (files []st
 	return files, nil
 }
 
+// VersionMatch parses and check the version s against the provided constraints
+func VersionMatch(verbose bool, constraints Constraints, s string) (bool, error) {
+	v, err := parseVersion(verbose, s)
+	if err != nil {
+		return false, err
+	}
+
+	valid, errs := constraints.Validate(v)
+	if verbose {
+		logErrors(s, errs)
+	}
+
+	return valid, nil
+}
+
 func parseVersion(verbose bool, s string) (*semver.Version, error) {
 	v, err := semver.NewVersion(s)
 	if err != nil && verbose {

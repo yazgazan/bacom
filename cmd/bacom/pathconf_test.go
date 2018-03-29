@@ -178,7 +178,7 @@ func TestGetPathConf(t *testing.T) {
 			},
 		},
 	} {
-		pConf := getPathConf(test.conf, test.method, test.path)
+		pConf := getPathConf(false, test.conf, "v0.0.1", test.method, test.path)
 
 		if !reflect.DeepEqual(pConf, test.expected) {
 			t.Errorf("getPathConf(%+v, %q, %q) = %+v, expected %+v", test.conf, test.method, test.path, pConf, test.expected)

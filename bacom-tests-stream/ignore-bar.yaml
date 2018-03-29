@@ -19,6 +19,7 @@ conf:
         - Content-Length
   - path: /api
     method: GET
+    version: "*"
     json:
       ignore:
         - "[].Bar"

@@ -14,6 +14,7 @@
     {
         "Path": "/api",
         "Method": "GET",
+        "Versions": "*",
         "JSON": {
             "Ignore": [
                 "[].Bar"

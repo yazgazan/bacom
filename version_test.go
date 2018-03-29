@@ -124,3 +124,83 @@ func TestFindVersionsFail(t *testing.T) {
 		t.Errorf("FindVersions(%q, false, %q): expected error, got nil", os.TempDir(), cStr)
 	}
 }
+
+func TestVersionMatch(t *testing.T) {
+	for _, test := range []struct {
+		constraint string
+		input      string
+		expected   bool
+	}{
+		{
+			constraint: "v0.2.1",
+			input:      "v0.2.1",
+			expected:   true,
+		},
+		{
+			constraint: "v0.2.1",
+			input:      "v0.2.3",
+			expected:   false,
+		},
+		{
+			constraint: "v1.x",
+			input:      "v1.0.4",
+			expected:   true,
+		},
+		{
+			constraint: "v1.x",
+			input:      "v2.0.4",
+			expected:   false,
+		},
+	} {
+		constraints, err := semver.NewConstraint(test.constraint)
+		if err != nil {
+			t.Errorf("failed to parse constraint %q: %s", test.constraint, err)
+			continue
+		}
+
+		valid, err := VersionMatch(true, constraints, test.input)
+		if err != nil {
+			t.Errorf("VersionMatch(true, %q, %q): unexpected error: %s", test.constraint, test.input, err)
+			continue
+		}
+		if valid != test.expected {
+			t.Errorf("VersionMatch(true, %q, %q) = %v, expected %v", test.constraint, test.input, valid, test.expected)
+		}
+	}
+}
+
+func TestVersionMatchFail(t *testing.T) {
+	for _, test := range []struct {
+		constraint string
+		input      string
+	}{
+		{
+			constraint: "v0.2.1",
+			input:      "v",
+		},
+		{
+			constraint: "v0.2.1",
+			input:      "",
+		},
+		{
+			constraint: "v1.x",
+			input:      "v1.a.2",
+		},
+		{
+			constraint: "v1.x",
+			input:      "v2.",
+		},
+	} {
+		constraints, err := semver.NewConstraint(test.constraint)
+		if err != nil {
+			t.Errorf("failed to parse constraint %q: %s", test.constraint, err)
+			continue
+		}
+
+		_, err = VersionMatch(true, constraints, test.input)
+		if err == nil {
+			t.Errorf("VersionMatch(true, %q, %q): expected error, got nil", test.constraint, test.input)
+			continue
+		}
+	}
+}
