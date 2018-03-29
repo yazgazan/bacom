@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/yazgazan/bacom"
@@ -53,14 +54,25 @@ func listTests(dirname string, conf listConf) error {
 		}
 		fmt.Printf("\t%s %s\n", req.Method, req.URL)
 		if conf.Long {
-			fmt.Printf("\t\tPath:           %s\n", fname)
+			fmt.Printf("\t\tPath:                     %s\n", fname)
 			resp, err := getBaseResponse(req, fname, targetConf{})
 			if err != nil {
 				fmt.Println("\t\t(response missing)")
 				continue
 			}
-			fmt.Printf("\t\tStatus:         %s\n", resp.Status)
-			fmt.Printf("\t\tContent-Length: %d\n", resp.ContentLength)
+			if req.Method == http.MethodPost {
+				cType := req.Header.Get("Content-Type")
+				if cType != "" {
+					fmt.Printf("\t\t(Request) Content-Type:   %s\n", cType)
+				}
+				fmt.Printf("\t\t(Request) Content-Length: %d\n", req.ContentLength)
+			}
+			fmt.Printf("\t\tStatus:                   %s\n", resp.Status)
+			cType := resp.Header.Get("Content-Type")
+			if cType != "" {
+				fmt.Printf("\t\tContent-Type:             %s\n", cType)
+			}
+			fmt.Printf("\t\tContent-Length:           %d\n", resp.ContentLength)
 		}
 	}
 
