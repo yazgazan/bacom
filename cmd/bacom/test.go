@@ -139,7 +139,11 @@ func compareResponses(
 
 	results = append(results, bodyResults...)
 
-	return results, nil
+	if conf.DumpResponses && len(bodyResults) != 0 {
+		err = json.NewEncoder(os.Stdout).Encode(targetBody)
+	}
+
+	return results, err
 }
 
 func runTest(conf testConf, fname string) (pass bool, err error) {

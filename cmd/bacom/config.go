@@ -137,6 +137,7 @@ type testConf struct {
 	Verbose       bool
 	Quiet         bool
 	PathsConfFile string
+	DumpResponses bool
 
 	Base   targetConf
 	Target targetConf
@@ -156,6 +157,7 @@ func parseTestFlags(args []string) (c testConf, err error) {
 	flags.BoolVar(&c.Verbose, "v", false, "print reasons")
 	flags.BoolVar(&c.Quiet, "q", false, "Reduce standard output")
 	flags.StringVar(&c.PathsConfFile, "conf", "bacom.json", "configuration file")
+	flags.BoolVar(&c.DumpResponses, "dump", false, "dump responses to standard output for failing tests")
 
 	flags.StringVar(&c.Base.Host, "base-host", "", "host for the base to compare to (leave empty to use saved tests versions)")
 	flags.BoolVar(&c.Base.UseHTTPS, "base-use-https", false, "use https for requests to the base host")
