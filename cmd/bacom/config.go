@@ -258,7 +258,7 @@ type importHARConf struct {
 	Files   []string
 	Verbose bool
 
-	Filters harFilters
+	Filters reqFilters
 }
 
 func parseImportHARFlags(args []string) (c importHARConf, err error) {
@@ -434,6 +434,8 @@ type listConf struct {
 	Dir         string
 	Long        bool
 	Constraints constraints
+
+	Filters reqFilters
 }
 
 func parseListFlags(args []string) (c listConf, err error) {
@@ -446,6 +448,13 @@ func parseListFlags(args []string) (c listConf, err error) {
 	flags.StringVar(&c.Dir, "dir", defaultDir, "folder containing the tests")
 	flags.BoolVar(&c.Long, "l", false, "prints detailed listing")
 	flags.Var(&c.Constraints, "version", "constraint listing to these tests")
+
+	flags.Var(&c.Filters.Paths, "paths", "path patterns to list (can be repeated)")
+	flags.Var(&c.Filters.IgnorePaths, "ignore-paths", "path patterns to ignore (can be repeated)")
+	flags.Var(&c.Filters.Hosts, "hosts", "host regexes to list (can be repeated)")
+	flags.Var(&c.Filters.IgnoreHosts, "ignore-hosts", "host regexes to ignore (can be repeated)")
+	flags.Var(&c.Filters.Methods, "methods", "methods to list (can be repeated)")
+	flags.Var(&c.Filters.IgnoreMethods, "ignore-methods", "methods to ignore (can be repeated)")
 	err = flags.Parse(args)
 
 	return c, err
