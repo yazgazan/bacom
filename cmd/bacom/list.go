@@ -12,7 +12,7 @@ func listCmd(args []string) {
 	c, err := parseListFlags(args)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
+		os.Exit(2)
 	}
 
 	versions, err := bacom.FindVersions(c.Dir, false, c.Constraints)

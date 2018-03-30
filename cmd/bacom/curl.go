@@ -30,7 +30,7 @@ func importCurlCmd(args []string) {
 	c, err := parseCurlFlags(args)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
+		os.Exit(2)
 	}
 	defer closeOrExit(c.Data)
 

@@ -23,7 +23,7 @@ func testCmd(args []string) {
 	c, err := parseTestFlags(args)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
+		os.Exit(2)
 	}
 
 	versions, err := bacom.FindVersions(c.Dir, c.Verbose, c.Constraints)

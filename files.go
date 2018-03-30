@@ -33,7 +33,7 @@ func GetRequestsFiles(dirname string) (files []string, err error) {
 		if fi.IsDir() {
 			continue
 		}
-		if !isRequestFilename(fi.Name()) {
+		if !IsRequestFilename(fi.Name()) {
 			continue
 		}
 
@@ -43,7 +43,8 @@ func GetRequestsFiles(dirname string) (files []string, err error) {
 	return files, nil
 }
 
-func isRequestFilename(fname string) bool {
+// IsRequestFilename returns true if fname matches the request filename pattern (_req[0-9]*.txt)
+func IsRequestFilename(fname string) bool {
 	idx := strings.LastIndex(fname, "_req")
 	if idx == -1 {
 		return false
@@ -79,8 +80,18 @@ func GetResponseFilename(reqFname string) (string, error) {
 	return reqFname[0:idx] + "_resp" + strconv.Itoa(n) + ".txt", nil
 }
 
+// NameFromReqFileName extracts the request name from the filename (removing the _req[0-9]*.txt suffix)
+func NameFromReqFileName(fname string) (string, error) {
+	name, err := nameFromReqFileName(fname)
+	if err != nil {
+		return name, err
+	}
+
+	return filepath.Base(name), nil
+}
+
 func nameFromReqFileName(fname string) (string, error) {
-	if !isRequestFilename(fname) {
+	if !IsRequestFilename(fname) {
 		return fname, ErrReqInvalidName
 	}
 	idx := strings.Index(fname, "_req")

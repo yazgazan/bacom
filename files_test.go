@@ -24,9 +24,59 @@ func TestIsRequestFilename(t *testing.T) {
 		{"_req.txt.txt", false},
 		{"_req.txt_req.txt", true},
 	} {
-		v := isRequestFilename(test.In)
+		v := IsRequestFilename(test.In)
 		if v != test.Value {
-			t.Errorf("isRequestFilename(%q) = %v, expected %v", test.In, v, test.Value)
+			t.Errorf("IsRequestFilename(%q) = %v, expected %v", test.In, v, test.Value)
+		}
+	}
+}
+
+func TestNameFromReqFileName(t *testing.T) {
+	for _, test := range []struct {
+		In       string
+		Expected string
+		Error    bool
+	}{
+		{
+			In:       "foo_req.txt",
+			Expected: "foo",
+		},
+		{
+			In:       "foo_req1.txt",
+			Expected: "foo",
+		},
+		{
+			In:       "foo_req42.txt",
+			Expected: "foo",
+		},
+		{
+			In:    "foo_req42",
+			Error: true,
+		},
+		{
+			In:    "",
+			Error: true,
+		},
+		{
+			In:    "foo.txt",
+			Error: true,
+		},
+		{
+			In:    "foo_req.json",
+			Error: true,
+		},
+	} {
+		got, err := NameFromReqFileName(test.In)
+		if test.Error && err == nil {
+			t.Errorf("NameFromReqFileName(%q): expected error, got nil", test.In)
+			continue
+		}
+		if !test.Error && err != nil {
+			t.Errorf("NameFromReqFileName(%q): unexpected error: %s", test.In, err)
+			continue
+		}
+		if err == nil && got != test.Expected {
+			t.Errorf("NameFromReqFileName(%q) = %q, expected %q", test.In, got, test.Expected)
 		}
 	}
 }

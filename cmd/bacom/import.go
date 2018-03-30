@@ -16,6 +16,7 @@ func importCmd(args []string) {
 		if err != nil {
 			panic(err)
 		}
+		os.Exit(1)
 	case harSubCmdName:
 		importHarCmd(args)
 	case curlSubCmdName:

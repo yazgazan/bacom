@@ -23,6 +23,8 @@ func main() {
 		importCmd(args)
 	case listCmdName:
 		listCmd(args)
+	case mvCmdName:
+		mvCmd(args)
 	case versionCmdName:
 		versionCmd()
 	}

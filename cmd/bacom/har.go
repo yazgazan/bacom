@@ -18,7 +18,7 @@ func importHarCmd(args []string) {
 	c, err := parseImportHARFlags(args)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
+		os.Exit(2)
 	}
 
 	for _, fname := range c.Files {
