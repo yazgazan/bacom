@@ -52,29 +52,33 @@ func listTests(dirname string, conf listConf) error {
 			fmt.Println(fname)
 			continue
 		}
-		fmt.Printf("\t%s %s\n", req.Method, req.URL)
-		if conf.Long {
-			fmt.Printf("\t\tPath:                     %s\n", fname)
-			resp, err := getBaseResponse(req, fname, targetConf{})
-			if err != nil {
-				fmt.Println("\t\t(response missing)")
-				continue
-			}
-			if req.Method == http.MethodPost {
-				cType := req.Header.Get("Content-Type")
-				if cType != "" {
-					fmt.Printf("\t\t(Request) Content-Type:   %s\n", cType)
-				}
-				fmt.Printf("\t\t(Request) Content-Length: %d\n", req.ContentLength)
-			}
-			fmt.Printf("\t\tStatus:                   %s\n", resp.Status)
-			cType := resp.Header.Get("Content-Type")
-			if cType != "" {
-				fmt.Printf("\t\tContent-Type:             %s\n", cType)
-			}
-			fmt.Printf("\t\tContent-Length:           %d\n", resp.ContentLength)
-		}
+		printTestDetails(conf, fname, req)
 	}
 
 	return nil
+}
+
+func printTestDetails(conf listConf, fname string, req *http.Request) {
+	fmt.Printf("\t%s %s\n", req.Method, req.URL)
+	if conf.Long {
+		fmt.Printf("\t\tPath:                     %s\n", fname)
+		if req.Method == http.MethodPost {
+			cType := req.Header.Get("Content-Type")
+			if cType != "" {
+				fmt.Printf("\t\t(Request) Content-Type:   %s\n", cType)
+			}
+			fmt.Printf("\t\t(Request) Content-Length: %d\n", req.ContentLength)
+		}
+		resp, err := getBaseResponse(req, fname, targetConf{})
+		if err != nil {
+			fmt.Println("\t\t(response missing)")
+			return
+		}
+		fmt.Printf("\t\tStatus:                   %s\n", resp.Status)
+		cType := resp.Header.Get("Content-Type")
+		if cType != "" {
+			fmt.Printf("\t\tContent-Type:             %s\n", cType)
+		}
+		fmt.Printf("\t\tContent-Length:           %d\n", resp.ContentLength)
+	}
 }
