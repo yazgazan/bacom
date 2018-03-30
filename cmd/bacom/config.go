@@ -126,6 +126,8 @@ COMMANDS:
     test    run existing tests
     import  import requests from HAR files
     list    lists tests information
+    mv      move request/response pairs around
+    cp      copy request/response pairs
     version print version information
 
 Note:
