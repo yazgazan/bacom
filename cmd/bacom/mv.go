@@ -116,6 +116,12 @@ func mvFileToFile(src, dst string) error {
 }
 
 func mvFile(srcFname, dstFname string) (err error) {
+	err = os.Rename(srcFname, dstFname)
+
+	if err == nil {
+		fmt.Printf("%s -> %s\n", srcFname, dstFname)
+		return nil
+	}
 	src, err := os.Open(srcFname)
 	if err != nil {
 		return err
@@ -130,8 +136,11 @@ func mvFile(srcFname, dstFname string) (err error) {
 
 	_, err = io.Copy(dst, src)
 
+	if err != nil {
+		return err
+	}
 	fmt.Printf("%s -> %s\n", srcFname, dstFname)
-	return err
+	return os.Remove(srcFname)
 }
 
 func dstInfo(fname string) (isDir bool, err error) {
