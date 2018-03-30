@@ -106,3 +106,4 @@ bacom test -version="<=v1.x" -target-host=localhost:8080 -save=v2.0.0
 
 - [ ] Supporting HTTP trailers
 - [ ] Supporting more import formats (Postman and Insomnia)
+- [ ] Supporting custom validators
