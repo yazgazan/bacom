@@ -25,6 +25,8 @@ func main() {
 		listCmd(args)
 	case mvCmdName:
 		mvCmd(args)
+	case cpCmdName:
+		cpCmd(args)
 	case versionCmdName:
 		versionCmd()
 	}

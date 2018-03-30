@@ -22,6 +22,7 @@ const (
 	testCmdName    = "test"
 	listCmdName    = "list"
 	mvCmdName      = "mv"
+	cpCmdName      = "cp"
 	versionCmdName = "version"
 
 	curlSubCmdName = "curl"
@@ -148,7 +149,7 @@ func getCommand() (cmd string, args []string) {
 	default:
 		fmt.Fprintf(os.Stderr, "Error: unknown command %q\n", cmd)
 		os.Exit(2)
-	case testCmdName, importCmdName, listCmdName, mvCmdName, versionCmdName:
+	case testCmdName, importCmdName, listCmdName, mvCmdName, cpCmdName, versionCmdName:
 		return strings.ToLower(cmd), args
 	}
 
@@ -471,6 +472,22 @@ type mvConf struct {
 func parseMvFlags(args []string) (c mvConf, err error) {
 	if len(args) < 2 {
 		return c, errors.Errorf("%s %s source... destination", getBinaryName(), mvCmdName)
+	}
+
+	c.Src = args[:len(args)-1]
+	c.Dst = args[len(args)-1]
+
+	return c, nil
+}
+
+type cpConf struct {
+	Src []string
+	Dst string
+}
+
+func parseCpFlags(args []string) (c cpConf, err error) {
+	if len(args) < 2 {
+		return c, errors.Errorf("%s %s source... destination", getBinaryName(), cpCmdName)
 	}
 
 	c.Src = args[:len(args)-1]
