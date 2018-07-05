@@ -57,7 +57,7 @@ func getPathConf(verbose bool, conf []pathConf, version, method, path string) pa
 		if err != nil || !ok {
 			continue
 		}
-		err = mergo.Merge(&pConf, c, mergo.WithOverride)
+		err = mergo.Merge(&pConf, c, mergo.WithOverride, mergo.WithAppendSlice)
 		if err != nil {
 			continue
 		}
