@@ -56,7 +56,7 @@
     "diff",
     "jpath"
   ]
-  revision = "5d69ec80a27ed5675e3378c423d05be57047b5d2"
+  revision = "ec6fa932dc6a303d64f1e9ac36bb4ba47e9ffdff"
 
 [[projects]]
   branch = "master"
