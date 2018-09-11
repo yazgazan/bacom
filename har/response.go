@@ -42,7 +42,7 @@ func (r *Response) ToHTTPResponse(req *http.Request) (*http.Response, error) {
 			headers.Set(hName, header.Value)
 		}
 	}
-	body, _ := r.getBody()
+	body, err := r.getBody()
 
 	resp := &http.Response{
 		Status:        r.StatusText,
@@ -56,5 +56,5 @@ func (r *Response) ToHTTPResponse(req *http.Request) (*http.Response, error) {
 		Request:       req,
 	}
 
-	return resp, nil
+	return resp, err
 }

@@ -10,7 +10,7 @@ before_install:
 
 script:
     - go build
-    - gometalinter.v2 -e '_test.go' -e 'Subprocess launching with variable' $(go list ./...)
+    - gometalinter.v2 -e '_test.go' -e 'Subprocess launched with variable' -e 'Potential file inclusion via variable' $(go list ./...)
     - go test -v ./...
     - go test -v -covermode=count -coverprofile=coverage.out .
     - go test -v -covermode=count -coverprofile=coverage.out ./har
