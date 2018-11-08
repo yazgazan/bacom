@@ -50,13 +50,13 @@
   version = "v0.8.0"
 
 [[projects]]
-  branch = "adding-json-like-output"
   name = "github.com/yazgazan/jaydiff"
   packages = [
     "diff",
     "jpath"
   ]
-  revision = "ec6fa932dc6a303d64f1e9ac36bb4ba47e9ffdff"
+  revision = "bfd42e8a2fbdc5cf0b6cfe888298480fdfc852a7"
+  version = "v0.1.5"
 
 [[projects]]
   branch = "master"
@@ -85,6 +85,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7494bb4adc2a949ef2a4cf7ad223639c119b0507cc28150eba16a4030a5c1444"
+  inputs-digest = "f0a68aaced7bdd8c552bc2689ea92cb48d89cbcbaa9909df2dabac7b0534555a"
   solver-name = "gps-cdcl"
   solver-version = 1
