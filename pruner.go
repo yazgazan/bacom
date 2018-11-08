@@ -1,10 +1,9 @@
 package bacom
 
 import (
-	"strings"
-
 	"github.com/pkg/errors"
 	"github.com/yazgazan/jaydiff/diff"
+	"github.com/yazgazan/jaydiff/jpath"
 )
 
 // Prune returns a diff.Differ, stripping the diff tree of the following differences:
@@ -105,7 +104,7 @@ func (p IgnoreMissingPrunner) Prune(d diff.Differ) diff.Differ {
 
 func pathMatches(paths []string, path string) bool {
 	for _, p := range paths {
-		if strings.HasSuffix(path, p) {
+		if jpath.HasSuffix(path, p) {
 			return true
 		}
 	}
