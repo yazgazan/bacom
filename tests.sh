@@ -142,8 +142,3 @@ else
     echo "OK"
 fi
 
-if [[ $FAILED -ne 0 ]]; then
-    exit 1
-else
-    echo "OK"
-fi
