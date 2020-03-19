@@ -2,89 +2,125 @@
 
 
 [[projects]]
+  digest = "1:b16fbfbcc20645cb419f78325bb2e85ec729b338e996a228124d68931a6f2a37"
   name = "github.com/BurntSushi/toml"
   packages = ["."]
+  pruneopts = "UT"
   revision = "b26d9c308763d68093482582cea63d69be07a0f0"
   version = "v0.3.0"
 
 [[projects]]
+  digest = "1:55388fd080150b9a072912f97b1f5891eb0b50df43401f8b75fb4273d3fec9fc"
   name = "github.com/Masterminds/semver"
   packages = ["."]
+  pruneopts = "UT"
   revision = "c7af12943936e8c39859482e61f0574c2fd7fc75"
   version = "v1.4.2"
 
 [[projects]]
+  digest = "1:865079840386857c809b72ce300be7580cb50d3d3129ce11bf9aa6ca2bc1934a"
   name = "github.com/fatih/color"
   packages = ["."]
+  pruneopts = "UT"
   revision = "5b77d2a35fb0ede96d138fc9a99f5c9b6aef11b4"
   version = "v1.7.0"
 
 [[projects]]
+  digest = "1:3e260afa138eab6492b531a3b3d10ab4cb70512d423faa78b8949dec76e66a21"
   name = "github.com/imdario/mergo"
   packages = ["."]
+  pruneopts = "UT"
   revision = "9316a62528ac99aaecb4e47eadd6dc8aa6533d58"
   version = "v0.3.5"
 
 [[projects]]
+  digest = "1:c658e84ad3916da105a761660dcaeb01e63416c8ec7bc62256a9b411a05fcd67"
   name = "github.com/mattn/go-colorable"
   packages = ["."]
+  pruneopts = "UT"
   revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
   version = "v0.0.9"
 
 [[projects]]
+  digest = "1:d4d17353dbd05cb52a2a52b7fe1771883b682806f68db442b436294926bbfafb"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
+  pruneopts = "UT"
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
   version = "v0.0.3"
 
 [[projects]]
   branch = "master"
+  digest = "1:8213aea9ec57afac7c765f9127bb3a5677866e03c0d3815f236045f16d5bc468"
   name = "github.com/mb0/diff"
   packages = ["."]
+  pruneopts = "UT"
   revision = "d8d9a906c24d7b0ee77287e0463e5ca7f026032e"
 
 [[projects]]
+  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
   name = "github.com/pkg/errors"
   packages = ["."]
+  pruneopts = "UT"
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:2d50286f1139c4287adf495c00e618340d6377d2f009a9206d071efb9953f999"
   name = "github.com/yazgazan/jaydiff"
   packages = [
     "diff",
-    "jpath"
+    "jpath",
   ]
-  revision = "bfd42e8a2fbdc5cf0b6cfe888298480fdfc852a7"
-  version = "v0.1.5"
+  pruneopts = "UT"
+  revision = "89e51ad8942dc9c0f38d481b47b663d5a2888077"
 
 [[projects]]
   branch = "master"
+  digest = "1:76ee51c3f468493aff39dbacc401e8831fbb765104cbf613b89bef01cf4bad70"
   name = "golang.org/x/net"
   packages = ["context"]
+  pruneopts = "UT"
   revision = "ed29d75add3d7c4bf7ca65aac0c6df3d1420216f"
 
 [[projects]]
   branch = "master"
+  digest = "1:39ebcc2b11457b703ae9ee2e8cca0f68df21969c6102cb3b705f76cca0ea0239"
   name = "golang.org/x/sync"
   packages = ["errgroup"]
+  pruneopts = "UT"
   revision = "1d60e4601c6fd243af51cc01ddf169918a5407ca"
 
 [[projects]]
   branch = "master"
+  digest = "1:a3a6de39e290e48a117738abd07843fce514b32ba887044c1dd123030a60c108"
   name = "golang.org/x/sys"
   packages = ["unix"]
+  pruneopts = "UT"
   revision = "151529c776cdc58ddbe7963ba9af779f3577b419"
 
 [[projects]]
+  digest = "1:342378ac4dcb378a5448dd723f0784ae519383532f5e70ade24132c4c8693202"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
+  pruneopts = "UT"
   revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
   version = "v2.2.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f0a68aaced7bdd8c552bc2689ea92cb48d89cbcbaa9909df2dabac7b0534555a"
+  input-imports = [
+    "github.com/BurntSushi/toml",
+    "github.com/Masterminds/semver",
+    "github.com/fatih/color",
+    "github.com/imdario/mergo",
+    "github.com/pkg/errors",
+    "github.com/yazgazan/jaydiff/diff",
+    "github.com/yazgazan/jaydiff/jpath",
+    "golang.org/x/sync/errgroup",
+    "gopkg.in/yaml.v2",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
