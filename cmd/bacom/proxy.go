@@ -65,6 +65,7 @@ func proxyHandler(target *url.URL, outDir string, verbose bool, filters reqFilte
 		for k, v := range r.URL.Query() {
 			q[k] = v
 		}
+		u.RawQuery = q.Encode()
 		if target.Fragment == "" {
 			u.Fragment = r.URL.Fragment
 		}
