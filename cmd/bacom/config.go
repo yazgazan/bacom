@@ -297,6 +297,7 @@ type importProxyConf struct {
 	Dir     string
 	Filters reqFilters
 	Verbose bool
+	Graph   bool
 }
 
 func parseImportProxyFlags(args []string) (c importProxyConf, err error) {
@@ -310,6 +311,7 @@ func parseImportProxyFlags(args []string) (c importProxyConf, err error) {
 	flags.StringVar(&c.Dir, "out", c.Dir, "output directory")
 	c.Filters.SetupFlags(flags)
 	flags.BoolVar(&c.Verbose, "v", false, "verbose")
+	flags.BoolVar(&c.Graph, "graph", false, "enable GraphQL support")
 
 	err = flags.Parse(args)
 	if err != nil {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -26,14 +27,14 @@ func importProxyCmd(args []string) {
 		log.Fatal(err)
 	}
 
-	err = runProxy(c.Listen, c.Target, c.Dir, c.Verbose, c.Filters)
+	err = runProxy(c.Listen, c.Target, c.Dir, c.Graph, c.Verbose, c.Filters)
 
 	if err != nil && !errors.Is(err, os.ErrExist) {
 		log.Fatal(err)
 	}
 }
 
-func runProxy(listen, target, outDir string, verbose bool, filters reqFilters) error {
+func runProxy(listen, target, outDir string, graph, verbose bool, filters reqFilters) error {
 	targetURL, err := url.Parse(target)
 	if err != nil {
 		return err
@@ -41,14 +42,14 @@ func runProxy(listen, target, outDir string, verbose bool, filters reqFilters) e
 
 	srv := &http.Server{
 		Addr:    listen,
-		Handler: proxyHandler(targetURL, outDir, verbose, filters),
+		Handler: proxyHandler(targetURL, outDir, graph, verbose, filters),
 	}
 
 	log.Printf("listening on %s", listen)
 	return srv.ListenAndServe()
 }
 
-func proxyHandler(target *url.URL, outDir string, verbose bool, filters reqFilters) http.HandlerFunc {
+func proxyHandler(target *url.URL, outDir string, graph, verbose bool, filters reqFilters) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 		reqBody, err := ioutil.ReadAll(r.Body)
@@ -69,8 +70,6 @@ func proxyHandler(target *url.URL, outDir string, verbose bool, filters reqFilte
 		if target.Fragment == "" {
 			u.Fragment = r.URL.Fragment
 		}
-
-		fmt.Println(u.String())
 
 		req, err := http.NewRequest(r.Method, u.String(), bytes.NewReader(reqBody))
 		if err != nil {
@@ -122,6 +121,11 @@ func proxyHandler(target *url.URL, outDir string, verbose bool, filters reqFilte
 		}
 
 		name := strings.ToLower(req.Method) + "-" + normalize(u.Path)
+		if op, err := getGraphOp(reqBody); err != nil {
+			log.Printf("-graph: %v. using method/path instead", err)
+		} else {
+			name = "graph-" + normalize(op)
+		}
 
 		reqFname, err := importReq(verbose, outDir, name, req)
 		if err != nil {
@@ -142,4 +146,21 @@ func proxyHandler(target *url.URL, outDir string, verbose bool, filters reqFilte
 
 		log.Printf("saved req/resp %q for %q", name, u.String())
 	}
+}
+
+func getGraphOp(b []byte) (string, error) {
+	var payload struct {
+		OperationName string
+	}
+
+	err := json.Unmarshal(b, &payload)
+	if err != nil {
+		return "", err
+	}
+
+	if payload.OperationName == "" {
+		return "", errors.New("-graph: missing .operationName")
+	}
+
+	return payload.OperationName, nil
 }
