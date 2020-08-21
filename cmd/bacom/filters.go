@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -16,6 +19,19 @@ type reqFilters struct {
 	IgnoreHosts   regexesFlag
 	Methods       stringsFlag
 	IgnoreMethods stringsFlag
+	ReqBody       stringsFlag
+	IgnoreReqBody stringsFlag
+}
+
+func (f *reqFilters) SetupFlags(flags *flag.FlagSet) {
+	flags.Var(&f.Paths, "paths", "path patterns to import (can be repeated)")
+	flags.Var(&f.IgnorePaths, "ignore-paths", "path patterns to ignore (can be repeated)")
+	flags.Var(&f.Hosts, "hosts", "host regexes to import (can be repeated)")
+	flags.Var(&f.IgnoreHosts, "ignore-hosts", "host regexes to ignore (can be repeated)")
+	flags.Var(&f.Methods, "methods", "methods to import (can be repeated)")
+	flags.Var(&f.IgnoreMethods, "ignore-methods", "methods to ignore (can be repeated)")
+	flags.Var(&f.ReqBody, "req-body", "include if request body contains (can be repeated)")
+	flags.Var(&f.IgnoreReqBody, "ignore-req-body", "exclude if request body contains (can be repeated)")
 }
 
 func (f reqFilters) Match(req *http.Request) error {
@@ -30,9 +46,59 @@ func (f reqFilters) Match(req *http.Request) error {
 		return err
 	}
 
+	err = f.matchBody(req)
+	if err != nil {
+		return err
+	}
+
 	err = f.matchHost(req)
 
 	return err
+}
+
+func (f reqFilters) matchBody(req *http.Request) error {
+	if len(f.ReqBody) == 0 && len(f.IgnoreReqBody) == 0 {
+		return nil
+	}
+
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		return err
+	}
+	err = req.Body.Close()
+	if err != nil {
+		return err
+	}
+	req.Body = ioutil.NopCloser(bytes.NewReader(body))
+
+	err = matchBodyContains(req, body, f.ReqBody...)
+	if err != nil {
+		return err
+	}
+
+	err = matchBodyExclude(req, body, f.IgnoreReqBody...)
+
+	return err
+}
+
+func matchBodyContains(req *http.Request, body []byte, ss ...string) error {
+	for _, s := range ss {
+		if !bytes.Contains(body, []byte(s)) {
+			return fmt.Errorf("body missing %q", s)
+		}
+	}
+
+	return nil
+}
+
+func matchBodyExclude(req *http.Request, body []byte, ss ...string) error {
+	for _, s := range ss {
+		if bytes.Contains(body, []byte(s)) {
+			return fmt.Errorf("body contains %q", s)
+		}
+	}
+
+	return nil
 }
 
 func (f reqFilters) matchPath(req *http.Request) error {

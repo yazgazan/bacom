@@ -17,16 +17,18 @@ import (
 )
 
 const (
-	defaultDir     = "bacom-tests"
-	importCmdName  = "import"
-	testCmdName    = "test"
-	listCmdName    = "list"
-	mvCmdName      = "mv"
-	cpCmdName      = "cp"
-	versionCmdName = "version"
+	defaultDir       = "bacom-tests"
+	importCmdName    = "import"
+	testCmdName      = "test"
+	listCmdName      = "list"
+	mvCmdName        = "mv"
+	cpCmdName        = "cp"
+	versionCmdName   = "version"
+	proxyDefaultAddr = "localhost:5480"
 
-	curlSubCmdName = "curl"
-	harSubCmdName  = "har"
+	curlSubCmdName  = "curl"
+	harSubCmdName   = "har"
+	proxySubCmdName = "proxy"
 )
 
 var (
@@ -273,12 +275,7 @@ func parseImportHARFlags(args []string) (c importHARConf, err error) {
 
 	flags.StringVar(&c.Dir, "out", ".", "output directory")
 	flags.BoolVar(&c.Verbose, "v", false, "verbose")
-	flags.Var(&c.Filters.Paths, "paths", "path patterns to import (can be repeated)")
-	flags.Var(&c.Filters.IgnorePaths, "ignore-paths", "path patterns to ignore (can be repeated)")
-	flags.Var(&c.Filters.Hosts, "hosts", "host regexes to import (can be repeated)")
-	flags.Var(&c.Filters.IgnoreHosts, "ignore-hosts", "host regexes to ignore (can be repeated)")
-	flags.Var(&c.Filters.Methods, "methods", "methods to import (can be repeated)")
-	flags.Var(&c.Filters.IgnoreMethods, "ignore-methods", "methods to ignore (can be repeated)")
+	c.Filters.SetupFlags(flags)
 
 	err = flags.Parse(args)
 	if err != nil {
@@ -289,6 +286,37 @@ func parseImportHARFlags(args []string) (c importHARConf, err error) {
 
 	if len(c.Files) == 0 {
 		return c, errors.New("missing input file(s)")
+	}
+
+	return c, nil
+}
+
+type importProxyConf struct {
+	Listen  string
+	Target  string
+	Dir     string
+	Filters reqFilters
+	Verbose bool
+}
+
+func parseImportProxyFlags(args []string) (c importProxyConf, err error) {
+	c.Listen = proxyDefaultAddr
+	c.Dir = defaultDir
+
+	flags := flag.NewFlagSet(getBinaryName()+" "+importCmdName+" "+proxySubCmdName, flag.ExitOnError)
+
+	flags.StringVar(&c.Listen, "listen", c.Listen, "address to listen on")
+	flags.StringVar(&c.Target, "target", c.Target, "target remote server (i.e http://example.com/)")
+	flags.StringVar(&c.Dir, "out", c.Dir, "output directory")
+	c.Filters.SetupFlags(flags)
+	flags.BoolVar(&c.Verbose, "v", false, "verbose")
+
+	err = flags.Parse(args)
+	if err != nil {
+		return c, err
+	}
+	if c.Target == "" {
+		return c, errors.New("missing -target")
 	}
 
 	return c, nil
@@ -455,12 +483,7 @@ func parseListFlags(args []string) (c listConf, err error) {
 	flags.BoolVar(&c.Filenames, "f", false, "print requests filenames")
 	flags.Var(&c.Constraints, "version", "constraint listing to these tests")
 
-	flags.Var(&c.Filters.Paths, "paths", "path patterns to list (can be repeated)")
-	flags.Var(&c.Filters.IgnorePaths, "ignore-paths", "path patterns to ignore (can be repeated)")
-	flags.Var(&c.Filters.Hosts, "hosts", "host regexes to list (can be repeated)")
-	flags.Var(&c.Filters.IgnoreHosts, "ignore-hosts", "host regexes to ignore (can be repeated)")
-	flags.Var(&c.Filters.Methods, "methods", "methods to list (can be repeated)")
-	flags.Var(&c.Filters.IgnoreMethods, "ignore-methods", "methods to ignore (can be repeated)")
+	c.Filters.SetupFlags(flags)
 	err = flags.Parse(args)
 
 	return c, err

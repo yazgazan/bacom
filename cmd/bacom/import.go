@@ -21,6 +21,8 @@ func importCmd(args []string) {
 		importHarCmd(args)
 	case curlSubCmdName:
 		importCurlCmd(args)
+	case proxySubCmdName:
+		importProxyCmd(args)
 	}
 }
 
@@ -36,7 +38,7 @@ func getImportSubCommand(args []string) (cmd string, cmdArgs []string) {
 	default:
 		fmt.Fprintf(os.Stderr, "Error: unknown import sub-command %q\n", cmd)
 		os.Exit(2)
-	case curlSubCmdName, harSubCmdName:
+	case curlSubCmdName, harSubCmdName, proxySubCmdName:
 		return strings.ToLower(cmd), cmdArgs
 	}
 
